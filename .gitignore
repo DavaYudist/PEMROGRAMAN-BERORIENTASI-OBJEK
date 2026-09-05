@@ -33,9 +33,13 @@ build/
 .idea/
 *.iml
 .vscode/
+**/.vscode/
 .settings/
+**/.settings/
 .project
+**/.project
 .classpath
+**/.classpath
 
 # OS generated files
 .DS_Store
