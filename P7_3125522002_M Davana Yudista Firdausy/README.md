@@ -120,29 +120,6 @@
 
 ---
 
-### BUKTI EKSEKUSI PROGRAM (*RUNNING SCREENSHOTS PLACEHOLDER*)
-
-```
-================================================================================
-            PRAKTIKUM PEMROGRAMAN BERORIENTASI OBJEK - MODUL 7                  
-                ABSTRACT CLASS, ABSTRACT METHOD, AND INTERFACE                  
-================================================================================
-  Nama Mahasiswa : M. Davana Yudista Firdausy | NRP: 3125522002
-  Kelas          : A D3 TI-SM | PENS PSDKU Sumenep
-================================================================================
-[Step 1] Instansiasi Konkret Berhasil: Petugas, Pemasok, Barang, Transaksi.
-[Step 2] Dynamic Binding Terverifikasi via Person Reference -> Petugas & Pemasok.
-[Step 3] Realisasi Kontrak Audit:
-         - [AUDIT BARANG] BRG-004: Spidol Whiteboard Hitam | Stok: 6 | KRITIS
-         - [AUDIT TRANSAKSI] TRX-IN-2026-002 | Barang Masuk | Total: 40 unit
-[Step 4] Heterogeneous Collections Iteration: Person[] & DapatDiaudit[] Berjalan Mulus!
-================================================================================
-```
-
-*(Gunakan ekstensi VS Code **Markdown PDF** untuk mengonversi dokumen ini menjadi `README.pdf` dengan presisi 3 halaman).*
-
----
-
 ### SPRINT REVIEW & SPRINT RETROSPECTIVE
 
 #### Sprint Review
@@ -153,3 +130,18 @@
 #### Sprint Retrospective
 * **What Went Well**: Refactoring berjalan mulus berkat fondasi enkapsulasi yang solid dari Modul 6. Integrasi interface memperjelas batas tanggung jawab antar entitas bisnis.
 * **What to Improve**: Pada iterasi berikutnya (Modul 8 / Lanjutan), kontrak audit dapat diperluas dengan mekanisme persistence (penyimpanan file/database) atau penanganan exception (*Error Handling*).
+
+<div style="page-break-after: always;"></div>
+
+### BUKTI EKSEKUSI PROGRAM (*RUNNING SCREENSHOTS*)
+
+Berikut adalah bukti tangkapan layar (*screenshots*) dari hasil running kode Java `Main.java` pada Modul 7 yang membuktikan keberhasilan eksekusi seluruh skenario implementasi Abstract Class dan Interface:
+
+#### 1. Tangkapan Layar: Skenario 1 (Instansiasi Konkret) & Skenario 2 (Dynamic Binding Superclass Reference)
+![Bukti Eksekusi Skenario 1 dan 2](screenshots/ss_scenario1_2.png)
+
+<div style="page-break-after: always;"></div>
+
+#### 2. Tangkapan Layar: Skenario 3 (Realisasi Kontrak Interface) & Skenario 4 (Koleksi Polimorfik Heterogen)
+![Bukti Eksekusi Skenario 3 dan 4](screenshots/ss_scenario3_4.png)
+
