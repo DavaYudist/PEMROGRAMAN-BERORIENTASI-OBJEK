@@ -28,3 +28,4 @@ public class KendaraanTidakTersediaException extends Exception {
         return platNomor;
     }
 }
+

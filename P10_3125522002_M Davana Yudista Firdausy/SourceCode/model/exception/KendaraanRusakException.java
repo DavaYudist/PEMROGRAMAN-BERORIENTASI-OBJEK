@@ -34,3 +34,4 @@ public class KendaraanRusakException extends Exception {
         return kondisiMesin;
     }
 }
+

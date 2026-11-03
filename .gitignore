@@ -8,6 +8,11 @@ bin/
 SourceCode/bin/
 P*/bin/
 
+# Python scripts & bytecode
+*.py
+*.pyc
+__pycache__/
+
 # Log files
 *.log
 hs_err_pid*
