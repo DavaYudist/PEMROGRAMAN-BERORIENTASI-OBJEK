@@ -1,16 +1,19 @@
-# Compiled class file
+# Environment & Credentials
+.env
+*.env
+
+# Compiled class files
 *.class
+bin/
+SourceCode/bin/
+P*/bin/
 
-# Log file
+# Log files
 *.log
+hs_err_pid*
+replay_pid*
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -19,27 +22,21 @@
 *.tar.gz
 *.rar
 
-# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
-
-# Build / Output directories
-bin/
-out/
-target/
-build/
-
-# IDE / Editor folders
-.idea/
-*.iml
+# IDE / Editor configuration
 .vscode/
 **/.vscode/
+.idea/
+*.iml
 .settings/
 **/.settings/
 .project
 **/.project
 .classpath
 **/.classpath
+
+# BlueJ & Mobile Tools
+*.ctxt
+.mtj.tmp/
 
 # OS generated files
 .DS_Store

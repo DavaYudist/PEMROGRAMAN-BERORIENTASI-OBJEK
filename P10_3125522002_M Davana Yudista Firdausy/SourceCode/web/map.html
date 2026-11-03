@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetSumenep - Live Fleet Tracking Map</title>
+    <!-- Asset lokal Leaflet offline -->
+    <link rel="stylesheet" href="lib/leaflet.css" />
+    <script src="lib/leaflet.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background: #fbfbfa; 
+            color: #1f2937; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* CSS Overrides to prevent tile tearing, overlapping, and stacking glitches in JavaFX WebView */
+        .leaflet-tile-container img {
+            transform: none !important;
+            image-rendering: auto;
+        }
+        .leaflet-zoom-animated {
+            transform: none !important;
+        }
+
+        /* Sub-Header Tracking */
+        .tracking-bar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            z-index: 1000;
+        }
+        .tracking-bar .title {
+            font-weight: 700;
+            color: #1b4332;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tracking-bar .badge {
+            background: #dcfce7;
+            color: #14532d;
+            font-weight: 700;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            border: 1px solid #86efac;
+        }
+        .tracking-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-mini {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-mini:hover {
+            background: #1b4332;
+            color: #ffffff;
+            border-color: #1b4332;
+        }
+
+        /* Layout Utama */
+        #main-container { 
+            display: flex; 
+            flex: 1; 
+            width: 100%;
+            height: calc(100% - 41px);
+            min-height: calc(100% - 41px);
+            position: relative;
+            overflow: hidden;
+        }
+        #map { 
+            flex: 3; 
+            width: 100%; 
+            height: 100%; 
+            min-height: 100%;
+            border-right: 1px solid #e2e4dd; 
+            background: #e5e7eb;
+            position: relative;
+        }
+        #sidebar { 
+            flex: 1; 
+            min-width: 330px;
+            max-width: 380px;
+            height: 100%;
+            padding: 14px; 
+            background: #fbfbfa; 
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 4px;
+        }
+        .sidebar-header h2 {
+            font-size: 13px;
+            font-weight: 700;
+            margin: 0;
+            color: #1b4332;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Card Kendaraan */
+        .car-card { 
+            background: #ffffff; 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: 1px solid #e2e4dd; 
+            border-left: 4px solid #2563eb; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
+            transition: transform 0.15s, box-shadow 0.15s;
+            cursor: pointer;
+        }
+        .car-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+        .car-card.vip { 
+            border-left-color: #d97706; 
+        }
+        .car-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .car-plat {
+            font-size: 13px;
+            font-weight: 800;
+            color: #111827;
+        }
+        .pill-category {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .pill-reguler { background: #dcfce7; color: #15803d; }
+        .pill-vip { background: #fef3c7; color: #b45309; }
+        
+        .car-detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #4b5563;
+            margin: 2px 0;
+        }
+        .car-detail-row strong {
+            color: #1f2937;
+        }
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 700;
+            font-size: 10.5px;
+            color: #2563eb;
+        }
+
+        /* Progress Bar Baterai */
+        .battery-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .battery-bar-fill {
+            height: 100%;
+            background: #2563eb;
+            transition: width 0.3s ease;
+        }
+        .battery-bar-fill.vip {
+            background: #d97706;
+        }
+
+        /* SVG Icons Marker */
+        .svg-marker {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Bar Navigasi Mini & Status Telemetri -->
+    <div class="tracking-bar">
+        <div class="title">
+            <span>📍 PETA GPS ARMADA AKTIF (DISEWA)</span>
+            <span class="badge" id="telemetry-badge">Live Tracking</span>
+        </div>
+        <div class="tracking-actions">
+            <button class="btn-mini" onclick="resetMapView()">🎯 Pusatkan Peta (Sumenep)</button>
+            <button class="btn-mini" onclick="filterCategory('ALL')">Semua Aktif</button>
+            <button class="btn-mini" onclick="filterCategory('Reguler')">Reguler</button>
+            <button class="btn-mini" onclick="filterCategory('VIP')">VIP</button>
+        </div>
+    </div>
+
+    <div id="main-container">
+        <div id="map" style="width: 100%; height: 100%; min-height: 100%;"></div>
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h2>Unit Sedang di Jalan</h2>
+                <span id="unit-count-badge" style="font-size: 10px; font-weight: bold; color: #2563eb;">0 Unit</span>
+            </div>
+            <div id="fleet-list">
+                <div style="font-size: 11px; color: #6b7280; text-align: center; padding: 20px;">
+                    Menghubungkan ke Domain Model Java...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Force Leaflet to run in 2D software rendering mode before initializing map
+        L.Browser.any3d = false;
+
+        // 2. Inisialisasi Peta Leaflet berpusat di Sumenep dengan animasi & inersia dimatikan
+        const sumenepCenter = [-7.015, 113.860];
+        const map = L.map('map', {
+            zoomControl: true,
+            attributionControl: true,
+            zoomAnimation: false,
+            fadeAnimation: false,
+            markerZoomAnimation: false,
+            inertia: false,
+            preferCanvas: true
+        }).setView(sumenepCenter, 14);
+
+        // 3. Tile Layer Esri World Street Map (Public, reliable, no API key required, zero watermarks)
+        const tileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18,
+            attribution: 'Tiles &copy; Esri'
+        }).addTo(map);
+
+        // 4. Auto-retry jika ada tile yang gagal dimuat
+        tileLayer.on('tileerror', function(error, tile) {
+            setTimeout(() => { 
+                if (tile && tile.src) {
+                    tile.src = tile.src; 
+                }
+            }, 1000);
+        });
+
+        // 5. Invalidate size container bounds di dalam JavaFX WebView
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize();
+            }
+        }, 300);
+
+        // Global function yang dipanggil oleh JavaFX saat tab beralih
+        window.triggerMapResize = function() {
+            if (map) {
+                map.invalidateSize();
+            }
+        };
+
+        // Resize listener otomatis
+        window.addEventListener('resize', () => {
+            if (map) {
+                map.invalidateSize();
+            }
+        });
+
+        const markers = {};
+        let currentFilter = 'ALL';
+        let latestFleetData = [];
+
+        // SVG Car Marker Generator (Active on road)
+        function getCarSvg(kategori) {
+            const color = (kategori === 'VIP') ? '#d97706' : '#2563eb';
+            return `
+            <div style="position:relative; width:34px; height:34px;" class="svg-marker">
+                <svg viewBox="0 0 24 24" width="34" height="34" fill="${color}" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z"/>
+                    <circle cx="7.5" cy="14.5" r="1.5" fill="#ffffff"/>
+                    <circle cx="16.5" cy="14.5" r="1.5" fill="#ffffff"/>
+                </svg>
+                <div style="position:absolute; bottom:-2px; right:-2px; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #ffffff;"></div>
+            </div>`;
+        }
+
+        function resetMapView() {
+            map.setView(sumenepCenter, 14);
+            setTimeout(() => { if (map) map.invalidateSize(); }, 200);
+        }
+
+        function focusCar(lat, lng) {
+            map.setView([lat, lng], 16);
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat;
+            renderFleet(latestFleetData);
+        }
+
+        // Fungsi pembaruan data yang dipanggil langsung oleh Java backend
+        function updateFleetData(data) {
+            if (!data) return;
+            latestFleetData = data;
+            renderFleet(data);
+        }
+
+        function renderFleet(cars) {
+            const listEl = document.getElementById('fleet-list');
+            listEl.innerHTML = '';
+            
+            // ATURAN FILTER KHUSUS: Hanya tampilkan mobil yang sedang berstatus 'DISEWA'
+            const activeRentedCars = (cars || []).filter(c => c.status === 'DISEWA' || c.disewa === true || c.isRented === true);
+
+            // Hapus seketika marker kendaraan yang sudah tidak aktif disewa / kembali ke pool STANDBY
+            const activePlatSet = new Set(activeRentedCars.map(c => c.plat));
+            Object.keys(markers).forEach(plat => {
+                if (!activePlatSet.has(plat)) {
+                    if (markers[plat]) {
+                        map.removeLayer(markers[plat]);
+                        delete markers[plat];
+                    }
+                }
+            });
+
+            // Terapkan filter kategori (ALL, Reguler, VIP)
+            const filtered = activeRentedCars.filter(c => {
+                if (currentFilter === 'ALL') return true;
+                return c.kategori === currentFilter;
+            });
+
+            document.getElementById('unit-count-badge').textContent = `${activeRentedCars.length} Unit di Jalan`;
+
+            // Jika 0 mobil disewa, tampilkan pesan kosong di sidebar & bersihkan semua marker
+            if (activeRentedCars.length === 0) {
+                listEl.innerHTML = `
+                    <div style="font-size: 12px; color: #64748b; text-align: center; padding: 32px 16px; background: #ffffff; border-radius: 8px; border: 1px dashed #cbd5e1; line-height: 1.6;">
+                        <div style="font-size: 28px; margin-bottom: 6px;">🅿️</div>
+                        <strong style="color: #1e293b; font-size: 13px;">Semua unit berada di garasi/parkir pool</strong>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+                            Tidak ada armada yang sedang beroperasi di jalan. Buka Page 3 untuk simulasi penyewaan.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(car => {
+                const isVIP = car.kategori === 'VIP';
+                const iconHtml = getCarSvg(car.kategori);
+                const customIcon = L.divIcon({ 
+                    html: iconHtml, 
+                    className: '', 
+                    iconSize: [34, 34], 
+                    iconAnchor: [17, 17] 
+                });
+
+                const bayLabel = car.baySlot || car.slot || 'Pool';
+                const popupContent = `
+                    <div style="font-family:sans-serif; font-size:12px; min-width:150px;">
+                        <strong style="font-size:13px; color:#111;">${car.plat}</strong>
+                        <div style="color:#4b5563; margin-top:2px;">${car.merk} (${car.kategori})</div>
+                        <div style="margin-top:4px;">Baterai: <b>${car.baterai}%</b></div>
+                        ${car.suhu ? `<div>Suhu Kabin: <b>${car.suhu}&deg;C</b></div>` : ''}
+                        <div style="margin-top:3px; color:#b91c1c;">Penyewa: <b>${car.penyewa || 'Penyewa Operasional'}</b></div>
+                        <div style="margin-top:4px; font-weight:bold; color:#2563eb;">
+                            ● Bergerak di Jalanan Sumenep
+                        </div>
+                    </div>
+                `;
+
+                // Update atau buat Marker di Peta
+                if (!markers[car.plat]) {
+                    markers[car.plat] = L.marker([car.lat, car.lng], { icon: customIcon })
+                        .addTo(map)
+                        .bindPopup(popupContent);
+                } else {
+                    markers[car.plat].setLatLng([car.lat, car.lng]);
+                    markers[car.plat].setIcon(customIcon);
+                    markers[car.plat].setPopupContent(popupContent);
+                }
+
+                // Render Sidebar Card
+                const card = document.createElement('div');
+                card.className = isVIP ? 'car-card vip' : 'car-card';
+                card.onclick = () => focusCar(car.lat, car.lng);
+
+                card.innerHTML = `
+                    <div class="car-card-header">
+                        <span class="car-plat">${car.plat}</span>
+                        <span class="pill-category ${isVIP ? 'pill-vip' : 'pill-reguler'}">${car.kategori}</span>
+                    </div>
+                    <div class="car-detail-row">
+                        <span>Merk Unit:</span>
+                        <strong>${car.merk}</strong>
+                    </div>
+                    <div class="car-detail-row">
+                        <span>Penyewa:</span>
+                        <strong style="color:#b91c1c;">${car.penyewa || 'Pelanggan'}</strong>
+                    </div>
+                    <div class="car-detail-row">
+                        <span>Status Operasi:</span>
+                        <span class="status-indicator">● Sedang Melaju di Jalan</span>
+                    </div>
+                    <div class="car-detail-row">
+                        <span>Alokasi Bay Kembali:</span>
+                        <strong>${bayLabel}</strong>
+                    </div>
+                    ${car.suhu ? `
+                    <div class="car-detail-row">
+                        <span>Iklim Kabin:</span>
+                        <strong style="color:#d97706;">${car.suhu}&deg;C</strong>
+                    </div>` : ''}
+                    <div class="car-detail-row" style="margin-top:4px;">
+                        <span>Kapasitas Daya:</span>
+                        <strong>${car.baterai}%</strong>
+                    </div>
+                    <div class="battery-bar-container">
+                        <div class="battery-bar-fill ${isVIP ? 'vip' : ''}" style="width: ${car.baterai}%;"></div>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        // Bridge Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.javaBridge && typeof window.javaBridge.getFleetData === 'function') {
+                try {
+                    const initialJson = JSON.parse(window.javaBridge.getFleetData());
+                    updateFleetData(initialJson);
+                } catch(e) {
+                    console.log('Bridge ready, waiting for telemetry push...');
+                }
+            }
+            setTimeout(() => { if (map) map.invalidateSize(); }, 400);
+        });
+    </script>
+</body>
+</html>
