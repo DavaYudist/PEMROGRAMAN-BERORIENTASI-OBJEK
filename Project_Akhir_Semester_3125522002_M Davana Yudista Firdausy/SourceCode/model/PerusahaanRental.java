@@ -61,22 +61,35 @@ public class PerusahaanRental {
     }
 
     private synchronized void loadInitialData() {
-        // Coba muat dari Database MySQL terlebih dahulu
-        boolean success = loadDataFromDatabase();
+        // 1. Coba inisialisasi & muat dari Database MySQL terlebih dahulu
+        boolean success = false;
+        try {
+            success = loadDataFromDatabase();
+        } catch (Exception e) {
+            success = false;
+        }
+
         if (!success) {
-            // Jika database MySQL offline, coba muat dari file persistensi data/armada_store.txt
+            // 2. Jika MySQL tidak aktif / time out / gagal, log warning yang jelas:
+            System.out.println("[WARN] MySQL not active. Activating fallback to FleetFileRepository (P12 text persistence)...");
+
+            // 3. Muat data dari file penyimpanan data/armada_store.txt
+            boolean fileLoaded = false;
             try {
                 if (defaultFilePath.toFile().exists()) {
                     muatDariFile(defaultFilePath);
                     System.out.println("[PerusahaanRental] Sukses memuat data dari file repository: " + defaultFilePath);
-                    return;
+                    fileLoaded = true;
                 }
             } catch (Exception e) {
                 System.err.println("[PerusahaanRental] Gagal memuat data dari file: " + e.getMessage());
             }
 
-            // Fallback terakhir ke dataset memori standar
-            initDefaultArmadaMemory();
+            // 4. Fallback ke memori default jika file belum ada
+            if (!fileLoaded) {
+                initDefaultArmadaMemory();
+                syncToFile();
+            }
         }
     }
 
@@ -92,7 +105,9 @@ public class PerusahaanRental {
 
         try {
             DatabaseManager db = DatabaseManager.getInstance();
-            db.initializeDatabase();
+            if (!db.initializeDatabase()) {
+                return false;
+            }
 
             try (Connection conn = db.getConnection()) {
                 int totalKapasitas = 8;
@@ -251,6 +266,7 @@ public class PerusahaanRental {
         } catch (Exception ignored) {
         }
 
+        syncToFile();
         return true;
     }
 
@@ -339,6 +355,7 @@ public class PerusahaanRental {
         }
 
         internalAdd(k);
+        syncToFile();
         return true;
     }
 
@@ -378,6 +395,7 @@ public class PerusahaanRental {
         armada.remove(target);
         mapArmada.remove(platNomor.trim().toUpperCase());
         platTerdaftar.remove(platNomor.trim().toUpperCase());
+        syncToFile();
         return true;
     }
 
@@ -482,6 +500,9 @@ public class PerusahaanRental {
             armadaDisewa.add(k);
         }
 
+        // Sinkronisasi otomatis ke file teks (P12 auto-sync)
+        syncToFile();
+
         return String.format(Locale.US,
             "SUKSES|Plat: %s | Unit: %s | Penyewa: %s | Durasi: %d Jam | Layanan: %s | Diskon: %.0f%% | Total Tagihan: Rp %,.0f | Status: Meluncur ke Peta",
             k.getPlatNomor(), k.getMerk(), k.getPenyewa(), durasiJam, (denganSupir ? "Dengan Supir" : "Lepas Kunci"), diskonPersen, totalBiaya);
@@ -523,6 +544,7 @@ public class PerusahaanRental {
         k.setDenganSupir(false);
         k.setLokasi(-7.0150, 113.8650);
         armadaDisewa.remove(k);
+        syncToFile();
     }
 
     public synchronized boolean kembalikanArmada(String platNomor) {
@@ -553,7 +575,34 @@ public class PerusahaanRental {
         if (catatanBaru != null) {
             k.setCatatanFisik(catatanBaru);
         }
+
+        String sql = "UPDATE armada SET tarif_per_hari = ?, kondisi_mesin = ?, catatan_fisik = ? WHERE plat_nomor = ?";
+        try (Connection conn = DatabaseManager.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, tarifHarianBaru);
+            ps.setString(2, k.getKondisiMesin());
+            ps.setString(3, k.getCatatanFisik());
+            ps.setString(4, platNomor);
+            ps.executeUpdate();
+        } catch (Exception ignored) {
+        }
+
+        syncToFile();
         return true;
+    }
+
+    /**
+     * P12 - Sinkronisasi otomatis data armada aktif ke file teks (armada_store.txt).
+     */
+    public synchronized void syncToFile() {
+        try {
+            if (defaultFilePath.getParent() != null && !defaultFilePath.getParent().toFile().exists()) {
+                defaultFilePath.getParent().toFile().mkdirs();
+            }
+            fileRepository.simpan(defaultFilePath, armada);
+        } catch (IOException e) {
+            System.err.println("[PerusahaanRental] Gagal sinkronisasi data ke file: " + e.getMessage());
+        }
     }
 
     private void assignPersistentSlot(Kendaraan k) {
@@ -622,6 +671,14 @@ public class PerusahaanRental {
 
     public String getNamaCabang() {
         return namaCabang;
+    }
+
+    public FleetFileRepository getFileRepository() {
+        return fileRepository;
+    }
+
+    public Path getDefaultFilePath() {
+        return defaultFilePath;
     }
 
     public String getFleetJson() {

@@ -21,6 +21,9 @@ import javafx.util.Duration;
 import netscape.javascript.JSObject;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
@@ -57,6 +60,10 @@ public class Main extends Application {
     // Parameter pergerakan simulasi di jalanan Sumenep
     private double dir1 = 1.0;
     private double dir2 = 1.0;
+
+    // P12 Persistence Repository & P13 Dirty-State Tracker
+    private FleetFileRepository fleetFileRepo = new FleetFileRepository();
+    private boolean berubah = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -438,6 +445,7 @@ public class Main extends Application {
             Platform.runLater(() -> {
                 try {
                     String hasil = rental.prosesSewa(plat, penyewa, jam, denganSupir, diskonPersen);
+                    berubah = true;
                     System.out.println("[TRANSAKSI SEWA] " + hasil);
                 } catch (KendaraanTidakTersediaException e) {
                     System.err.println("[VALIDASI SEWA DITOLAK] " + e.getMessage());
@@ -463,6 +471,7 @@ public class Main extends Application {
                     Kendaraan k = rental.findKendaraan(plat);
                     if (k != null) {
                         rental.kembalikanArmada(k);
+                        berubah = true;
                         System.out.println("[ACTION] Armada " + plat + " dikembalikan ke bay " + k.getSlotParkir() + " (Standby).");
                     } else {
                         System.err.println("[ACTION GAGAL] Armada " + plat + " tidak ditemukan.");
@@ -480,6 +489,7 @@ public class Main extends Application {
                 try {
                     boolean sukses = rental.editKendaraan(plat, tarifHarian, kondisi, catatan);
                     if (sukses) {
+                        berubah = true;
                         System.out.println("[FLEET ADMIN] Sukses memperbarui spesifikasi " + plat + " (Tarif Harian: Rp " + tarifHarian + ", Kondisi: " + kondisi + ")");
                     } else {
                         System.out.println("[FLEET ADMIN] Gagal memperbarui armada " + plat);
@@ -511,6 +521,7 @@ public class Main extends Application {
                     }
                     boolean sukses = rental.tambahKendaraan(baru);
                     if (sukses) {
+                        berubah = true;
                         System.out.println("[FLEET ADMIN] Sukses menambah kendaraan baru " + plat + " (" + merk + ") di bay " + baru.getSlotParkir());
                     } else {
                         System.out.println("[FLEET ADMIN] Gagal menambah kendaraan " + plat + " (Plat duplikat atau data tidak valid)");
@@ -532,6 +543,7 @@ public class Main extends Application {
                 try {
                     boolean sukses = rental.hapusKendaraan(plat);
                     if (sukses) {
+                        berubah = true;
                         System.out.println("[FLEET ADMIN] Berhasil menghapus kendaraan " + plat + " dari armada.");
                     } else {
                         System.out.println("[FLEET ADMIN] Gagal menghapus kendaraan " + plat + ".");
@@ -568,6 +580,7 @@ public class Main extends Application {
             Platform.runLater(() -> {
                 try {
                     rental.tambahKapasitasSlot(tambahan);
+                    berubah = true;
                     System.out.println("[PARKING ADMIN] Kapasitas parkir pool diperluas +" + tambahan + " bay.");
                 } catch (Exception e) {
                     System.err.println("[PARKING ADMIN - ERROR] " + e.getMessage());
@@ -582,6 +595,7 @@ public class Main extends Application {
                 try {
                     boolean sukses = rental.kurangiKapasitasSlot(jumlahKurang);
                     if (sukses) {
+                        berubah = true;
                         System.out.println("[PARKING ADMIN] Kapasitas parkir pool berhasil dikurangi -" + jumlahKurang + " bay.");
                     }
                 } catch (KapasitasPenuhException e) {
@@ -592,6 +606,62 @@ public class Main extends Application {
                     System.err.println("[PARKING ADMIN - ERROR] " + e.getMessage());
                 } finally {
                     syncAllActiveWebViews();
+                }
+            });
+        }
+
+        /**
+         * P12 File Persistence: Menyimpan seluruh armada aktif ke data/armada_store.txt
+         */
+        public void simpanKeFile() {
+            Platform.runLater(() -> {
+                try {
+                    Path fileStore = Paths.get("data", "armada_store.txt");
+                    if (fileStore.getParent() != null && !Files.exists(fileStore.getParent())) {
+                        Files.createDirectories(fileStore.getParent());
+                    }
+                    fleetFileRepo.simpan(fileStore, rental.getArmada());
+                    berubah = false;
+                    System.out.println("[PERSISTENSI P12] Data armada (" + rental.getArmada().size() + " unit) berhasil disimpan ke: " + fileStore);
+                    if (adminEngine != null) {
+                        adminEngine.executeScript("if (typeof showAlert === 'function') showAlert('Sukses menyimpan " + rental.getArmada().size() + " unit armada ke file data/armada_store.txt (P12 Persistence)!', true);");
+                    }
+                } catch (Exception e) {
+                    System.err.println("[PERSISTENSI ERROR] Gagal menyimpan data ke file: " + e.getMessage());
+                    if (adminEngine != null) {
+                        adminEngine.executeScript("if (typeof showAlert === 'function') showAlert('Gagal menyimpan ke file: " + e.getMessage() + "', false);");
+                    }
+                }
+            });
+        }
+
+        /**
+         * P12 File Persistence: Memuat ulang seluruh armada dari data/armada_store.txt secara defensif
+         */
+        public void muatDariFile() {
+            Platform.runLater(() -> {
+                try {
+                    Path fileStore = Paths.get("data", "armada_store.txt");
+                    if (!Files.exists(fileStore)) {
+                        if (adminEngine != null) {
+                            adminEngine.executeScript("if (typeof showAlert === 'function') showAlert('File data/armada_store.txt tidak ditemukan di disk!', false);");
+                        }
+                        return;
+                    }
+                    rental.muatDariFile(fileStore);
+                    berubah = false;
+                    System.out.println("[PERSISTENSI P12] Data armada berhasil dimuat ulang dari: " + fileStore + " (" + rental.getArmada().size() + " unit)");
+                    pushFleetData();
+                    pushParkingData();
+                    pushAdminData();
+                    if (adminEngine != null) {
+                        adminEngine.executeScript("if (typeof showAlert === 'function') showAlert('Sukses memuat ulang " + rental.getArmada().size() + " unit armada dari file data/armada_store.txt!', true);");
+                    }
+                } catch (Exception e) {
+                    System.err.println("[PERSISTENSI ERROR] Gagal memuat data dari file: " + e.getMessage());
+                    if (adminEngine != null) {
+                        adminEngine.executeScript("if (typeof showAlert === 'function') showAlert('Gagal memuat dari file: " + e.getMessage() + "', false);");
+                    }
                 }
             });
         }

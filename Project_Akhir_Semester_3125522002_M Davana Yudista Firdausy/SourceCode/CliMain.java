@@ -254,3 +254,4 @@ public class CliMain {
             rental.getArmada().size() + " unit.");
     }
 }
+

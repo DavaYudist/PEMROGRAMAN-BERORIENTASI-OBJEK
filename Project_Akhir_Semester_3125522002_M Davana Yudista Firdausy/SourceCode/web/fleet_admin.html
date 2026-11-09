@@ -440,7 +440,9 @@
                     Tarif Harian (Base 24 Jam) &bull; Prorata Sejam &bull; Kunci Sewa Rusak &bull; Manajemen Bay Pool Dinamis
                 </div>
             </div>
-            <div style="display:flex; align-items:center; gap: 8px;">
+            <div style="display:flex; align-items:center; gap: 8px; flex-wrap: wrap;">
+                <button class="btn-secondary" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; font-weight:700;" onclick="simpanKeFileP12()">💾 Simpan Data ke File (P12)</button>
+                <button class="btn-secondary" style="background:#eff6ff; border-color:#bfdbfe; color:#1e40af; font-weight:700;" onclick="muatDariFileP12()">📂 Muat Ulang dari File (P12)</button>
                 <span class="depot-tag" id="depot-slot-tag">Kapasitas Pool: 8 Bay</span>
                 <button class="btn-secondary" onclick="tambahSlotKapasitas()">➕ Tambah Kapasitas (+4 Bay)</button>
                 <button class="btn-danger-outline" onclick="kurangiSlotKapasitas()">➖ Kurangi Bay Kosong (-4)</button>
@@ -456,7 +458,11 @@
             <div class="panel-card">
                 <div class="panel-title">
                     <span>🧾 Section A: Kalkulator Billing & Simulasi Peluncuran Sewa</span>
-                    <span style="font-size: 11px; font-weight: normal; color: #64748b;">Daily Base (24 Jam) + Prorata</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button class="btn-secondary" style="font-size:10.5px; padding:3px 8px; background:#ecfdf5; border-color:#a7f3d0; color:#065f46; font-weight:700;" onclick="simpanKeFileP12()" title="Simpan data armada aktif ke data/armada_store.txt">💾 Simpan Data ke File (P12)</button>
+                        <button class="btn-secondary" style="font-size:10.5px; padding:3px 8px; background:#eff6ff; border-color:#bfdbfe; color:#1e40af; font-weight:700;" onclick="muatDariFileP12()" title="Muat ulang data armada dari data/armada_store.txt">📂 Muat Ulang dari File (P12)</button>
+                        <span style="font-size: 11px; font-weight: normal; color: #64748b;">Daily Base (24 Jam) + Prorata</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -951,6 +957,26 @@
             if (window.javaBridge && typeof window.javaBridge.hapusMobil === 'function') {
                 window.javaBridge.hapusMobil(plat);
                 showAlert(`Armada ${plat} berhasil dihapus dari sistem.`, true);
+            }
+        }
+
+        // Action P12: Simpan Data ke File Teks (armada_store.txt)
+        function simpanKeFileP12() {
+            if (window.javaBridge && typeof window.javaBridge.simpanKeFile === 'function') {
+                window.javaBridge.simpanKeFile();
+            } else {
+                showAlert('Java Bridge simpanKeFile tidak tersedia.', false);
+            }
+        }
+
+        // Action P12: Muat Ulang Data dari File Teks (armada_store.txt)
+        function muatDariFileP12() {
+            if (confirm('Konfirmasi: Muat ulang data armada dari file penyimpanan teks (data/armada_store.txt)? Perubahan yang belum disimpan akan digantikan data dari file.')) {
+                if (window.javaBridge && typeof window.javaBridge.muatDariFile === 'function') {
+                    window.javaBridge.muatDariFile();
+                } else {
+                    showAlert('Java Bridge muatDariFile tidak tersedia.', false);
+                }
             }
         }
 

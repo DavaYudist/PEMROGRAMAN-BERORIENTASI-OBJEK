@@ -66,3 +66,4 @@
 * **Rencana Pengembangan Masa Depan:**
   * Integrasi API perangkat GPS tracker IoT fisik melalui protokol MQTT/Websocket.
   * Penambahan modul manajemen pemeliharaan armada otomatis berdasarkan interval odometer (servis berkala).
+

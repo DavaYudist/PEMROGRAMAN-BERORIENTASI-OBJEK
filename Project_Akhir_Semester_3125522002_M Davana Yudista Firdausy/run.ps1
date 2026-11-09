@@ -1,4 +1,4 @@
-﻿# Script Peluncuran Aplikasi Capstone FleetSumenep (P1 - P15)
+# Script Peluncuran Aplikasi Capstone FleetSumenep (P1 - P15)
 # Mahasiswa: M. Davana Yudista Firdausy (3125522002) - Kelas A D3 TI-SM
 
 Write-Host "==================================================================" -ForegroundColor Green

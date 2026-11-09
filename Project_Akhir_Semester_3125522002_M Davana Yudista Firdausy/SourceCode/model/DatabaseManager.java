@@ -18,10 +18,11 @@ public class DatabaseManager {
     private static DatabaseManager instance;
 
     private static final String DB_NAME = "db_fleet_sumenep";
-    private static final String SERVER_URL = "jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Jakarta";
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/" + DB_NAME + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Jakarta";
+    private static final String SERVER_URL = "jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Jakarta&connectTimeout=2000&socketTimeout=2000";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/" + DB_NAME + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Jakarta&connectTimeout=2000&socketTimeout=2000";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "";
+    private boolean databaseOnline = false;
 
     private DatabaseManager() {
         try {
@@ -38,6 +39,10 @@ public class DatabaseManager {
         return instance;
     }
 
+    public boolean isDatabaseOnline() {
+        return databaseOnline;
+    }
+
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
     }
@@ -48,16 +53,17 @@ public class DatabaseManager {
 
     /**
      * Inisialisasi Database, Tabel, dan Seeding data awal bila armada kosong.
+     * Mengembalikan true jika MySQL aktif dan inisialisasi berhasil, atau false jika offline.
      */
-    public synchronized void initializeDatabase() {
+    public synchronized boolean initializeDatabase() {
         // 1. Buat database jika belum ada
         try (Connection serverConn = getServerConnection();
              Statement stmt = serverConn.createStatement()) {
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME + ";");
             System.out.println("[DatabaseManager] Database '" + DB_NAME + "' terverifikasi/tersedia.");
         } catch (SQLException e) {
-            System.err.println("[DatabaseManager] Gagal memverifikasi/membuat database: " + e.getMessage());
-            return;
+            databaseOnline = false;
+            return false;
         }
 
         // 2. Buat tabel dan lakukan migrasi
@@ -121,8 +127,12 @@ public class DatabaseManager {
                 }
             }
 
+            databaseOnline = true;
+            return true;
+
         } catch (SQLException e) {
-            System.err.println("[DatabaseManager] Gagal inisialisasi tabel: " + e.getMessage());
+            databaseOnline = false;
+            return false;
         }
     }
 
