@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetSumenep ADMIN - Sistem Pemantauan Armada Rental</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#fbfbfa',
+                        creamDark: '#f3f4f1',
+                        borderMuted: '#e2e4dd',
+                        forest: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#2d6a4f',
+                            600: '#1b4332',
+                            700: '#143628',
+                            800: '#0f291e',
+                        },
+                        charcoal: '#1f2937'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #fbfbfa;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f2ec;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c7cabe;
+            border-radius: 3px;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .live-dot {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar">
+
+    <div class="flex-1 flex overflow-hidden">
+        <!-- 1. LEFT SIDEBAR NAVIGATION -->
+        <aside class="w-64 bg-creamDark border-r border-borderMuted flex flex-col justify-between shrink-0 select-none">
+            <div>
+                <!-- Brand Header -->
+                <div class="p-5 border-b border-borderMuted">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-forest-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                            <i class="fa-solid fa-car-side"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-base tracking-tight text-forest-700 leading-tight">FleetSumenep</h1>
+                            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Admin Dashboard</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 px-2 py-1 bg-white/70 border border-borderMuted rounded text-[11px] text-gray-600 flex items-center justify-between">
+                        <span><i class="fa-solid fa-building-flag mr-1 text-forest-500"></i> BPP Wilayah Sumenep</span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+                    </div>
+                </div>
+
+                <!-- Nav Menu -->
+                <nav class="p-3 space-y-1 text-sm font-medium">
+                    <a href="/" class="flex items-center justify-between px-3 py-2.5 rounded-md bg-forest-600 text-white font-semibold shadow-sm transition">
+                        <span class="flex items-center">
+                            <i class="fa-solid fa-shield-halved w-5 mr-2"></i>
+                            Validasi & Monitoring
+                        </span>
+                        <span class="bg-forest-700/80 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Aktif</span>
+                    </a>
+
+                    <a href="/map" class="flex items-center justify-between px-3 py-2.5 rounded-md text-gray-700 hover:bg-white hover:text-forest-600 transition group">
+                        <span class="flex items-center">
+                            <i class="fa-solid fa-map-location-dot w-5 mr-2 text-gray-400 group-hover:text-forest-500"></i>
+                            Peta Live GPS Tracking
+                        </span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-400"></i>
+                    </a>
+
+                    <a href="#table-section" class="flex items-center justify-between px-3 py-2.5 rounded-md text-gray-700 hover:bg-white hover:text-forest-600 transition group">
+                        <span class="flex items-center">
+                            <i class="fa-solid fa-list-check w-5 mr-2 text-gray-400 group-hover:text-forest-500"></i>
+                            Daftar Kendaraan Aktif
+                        </span>
+                        <span id="nav-badge-count" class="bg-gray-200 text-gray-700 text-[11px] font-bold px-1.5 py-0.2 rounded-full">3</span>
+                    </a>
+
+                    <a href="javascript:void(0)" onclick="alert('Modul Riwayat Log GPS terintegrasi penuh pada telemetry audit trail.')" class="flex items-center px-3 py-2.5 rounded-md text-gray-700 hover:bg-white hover:text-forest-600 transition group">
+                        <i class="fa-solid fa-clock-rotate-left w-5 mr-2 text-gray-400 group-hover:text-forest-500"></i>
+                        Riwayat Log GPS
+                    </a>
+
+                    <a href="javascript:void(0)" onclick="alert('Status Sistem: Semua baterai dalam ambang batas aman (Diatas 20%).')" class="flex items-center px-3 py-2.5 rounded-md text-gray-700 hover:bg-white hover:text-forest-600 transition group">
+                        <i class="fa-solid fa-triangle-exclamation w-5 mr-2 text-gray-400 group-hover:text-forest-500"></i>
+                        Laporan & Baterai
+                    </a>
+
+                    <a href="javascript:void(0)" onclick="alert('Wilayah kerja: Kabupaten Sumenep (Kec. Kota, Batuan, Kalianget).')" class="flex items-center px-3 py-2.5 rounded-md text-gray-700 hover:bg-white hover:text-forest-600 transition group">
+                        <i class="fa-solid fa-sliders w-5 mr-2 text-gray-400 group-hover:text-forest-500"></i>
+                        Pengaturan Wilayah
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Territory Info Box Footer -->
+            <div class="p-4 m-3 bg-white border border-borderMuted rounded-lg shadow-sm">
+                <div class="flex items-center space-x-2 text-xs font-semibold text-gray-800">
+                    <i class="fa-solid fa-location-dot text-rose-500"></i>
+                    <span>Wilayah Operasional</span>
+                </div>
+                <p class="text-[11px] text-gray-600 mt-1 font-medium leading-relaxed">
+                    Kab. Sumenep & Batuan<br>
+                    <span class="text-gray-400">Radius 25 Km • 8 Checkpoint</span>
+                </p>
+                <div class="mt-2.5 pt-2 border-t border-borderMuted flex items-center justify-between text-[10px] text-gray-500">
+                    <span>Modul 9 PBO MVP</span>
+                    <span class="font-bold text-forest-600">Java SE</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 2. MAIN CENTER CONTENT -->
+        <main class="flex-1 flex flex-col overflow-y-auto custom-scrollbar bg-cream">
+            <!-- Top Action Banner & Search Header -->
+            <header class="bg-white border-b border-borderMuted px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-20 shadow-xs">
+                <div class="flex items-center space-x-3 flex-1 min-w-[280px] max-w-xl">
+                    <div class="relative w-full">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="global-search" placeholder="Cari nomor plat, merk mobil, supir, atau rute..." 
+                            class="w-full bg-cream border border-borderMuted rounded-md pl-9 pr-4 py-2 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-forest-500 focus:border-forest-500 transition">
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2.5">
+                    <button onclick="downloadCSV()" class="px-3 py-2 bg-cream hover:bg-gray-100 border border-borderMuted rounded-md text-xs font-semibold text-gray-700 flex items-center space-x-1.5 transition">
+                        <i class="fa-solid fa-file-csv text-forest-600"></i>
+                        <span>Unduh CSV</span>
+                    </button>
+                    <button onclick="refreshData()" class="px-3 py-2 bg-cream hover:bg-gray-100 border border-borderMuted rounded-md text-xs font-semibold text-gray-700 flex items-center space-x-1.5 transition">
+                        <i class="fa-solid fa-arrows-rotate text-gray-500" id="refresh-icon"></i>
+                        <span>Segarkan</span>
+                    </button>
+                    <a href="/map" class="px-3.5 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-md text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                        <span>Buka Live Map Peta</span>
+                    </a>
+                    <div class="h-6 w-[1px] bg-borderMuted mx-1"></div>
+                    <div class="flex items-center space-x-2 pl-1">
+                        <div class="w-8 h-8 rounded-full bg-forest-100 text-forest-700 font-bold text-xs flex items-center justify-center border border-forest-500/20">
+                            DY
+                        </div>
+                        <div class="text-left hidden lg:block">
+                            <p class="text-xs font-bold text-gray-800 leading-tight">M. Davana Y. F.</p>
+                            <p class="text-[10px] text-gray-500">3125522002 (A D3 TI-SM)</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-6 space-y-6">
+                <!-- Title & Section Header -->
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 tracking-tight">Validasi & Monitoring Armada Rental</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Sistem Pemantauan Armada Rental Mobil (Backend Simulation Java SE & Web Dashboard MVP)</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 live-dot"></span>
+                            Sinkronisasi Realtime (1s Polling)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 3. METRICS & SUMMARY KPI CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- KPI 1: TOTAL ARMADA -->
+                    <div class="bg-white border-l-4 border-forest-600 border-t border-r border-b border-borderMuted rounded-lg p-4 shadow-xs">
+                        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold">
+                            <span>TOTAL ARMADA</span>
+                            <span class="p-2 rounded bg-forest-50 text-forest-600"><i class="fa-solid fa-car text-sm"></i></span>
+                        </div>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span id="kpi-total" class="text-2xl font-black text-gray-900 tracking-tight">-</span>
+                            <span class="text-xs text-gray-500 font-medium">Unit Terdaftar</span>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-borderMuted/60 flex items-center justify-between text-[11px] text-gray-500">
+                            <span>Cabang Sumenep</span>
+                            <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-check-double mr-1"></i>100% Terverifikasi</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: SEDANG OPERASI -->
+                    <div class="bg-white border-l-4 border-blue-600 border-t border-r border-b border-borderMuted rounded-lg p-4 shadow-xs">
+                        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold">
+                            <span>SEDANG OPERASI</span>
+                            <span class="p-2 rounded bg-blue-50 text-blue-600"><i class="fa-solid fa-route text-sm"></i></span>
+                        </div>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span id="kpi-disewa" class="text-2xl font-black text-blue-700 tracking-tight">-</span>
+                            <span class="text-xs text-gray-500 font-medium">Aktif Disewa</span>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-borderMuted/60 flex items-center justify-between text-[11px] text-gray-500">
+                            <span>Status GPS Live</span>
+                            <span class="bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded text-[10px]">Bergerak</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: UNIT TERSEDIA -->
+                    <div class="bg-white border-l-4 border-emerald-500 border-t border-r border-b border-borderMuted rounded-lg p-4 shadow-xs">
+                        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold">
+                            <span>UNIT TERSEDIA</span>
+                            <span class="p-2 rounded bg-emerald-50 text-emerald-600"><i class="fa-solid fa-circle-check text-sm"></i></span>
+                        </div>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span id="kpi-tersedia" class="text-2xl font-black text-emerald-700 tracking-tight">-</span>
+                            <span class="text-xs text-gray-500 font-medium">Siap Sewa</span>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-borderMuted/60 flex items-center justify-between text-[11px] text-gray-500">
+                            <span>Pool Standby</span>
+                            <span class="text-emerald-700 font-semibold" id="kpi-tersedia-pct">Siap Dipakai</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4: PERLU SERVIS / LOW BATTERY -->
+                    <div class="bg-white border-l-4 border-amber-500 border-t border-r border-b border-borderMuted rounded-lg p-4 shadow-xs">
+                        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold">
+                            <span>PERLU SERVIS / BATERAI</span>
+                            <span class="p-2 rounded bg-amber-50 text-amber-600"><i class="fa-solid fa-battery-three-quarters text-sm"></i></span>
+                        </div>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span id="kpi-lowbat" class="text-2xl font-black text-gray-800 tracking-tight">0</span>
+                            <span class="text-xs text-gray-500 font-medium">Peringatan</span>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-borderMuted/60 flex items-center justify-between text-[11px] text-gray-500">
+                            <span>Batas Minimal: 20%</span>
+                            <span class="text-emerald-700 font-bold"><i class="fa-solid fa-shield mr-1"></i>Aman</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. INTERACTIVE FLEET TABLE SECTION -->
+                <div id="table-section" class="bg-white border border-borderMuted rounded-lg shadow-xs overflow-hidden">
+                    <!-- Segmented Controls and Filters Bar -->
+                    <div class="p-4 border-b border-borderMuted flex flex-wrap items-center justify-between gap-3 bg-cream/50">
+                        <!-- Segmented Tab Controls -->
+                        <div class="flex items-center space-x-1 bg-gray-200/80 p-1 rounded-md text-xs font-semibold select-none">
+                            <button onclick="setFilter('semua')" id="tab-semua" class="tab-btn px-3 py-1.5 rounded bg-white text-gray-900 shadow-xs">Semua Unit</button>
+                            <button onclick="setFilter('aktif')" id="tab-aktif" class="tab-btn px-3 py-1.5 rounded text-gray-600 hover:text-gray-900">Aktif Berjalan</button>
+                            <button onclick="setFilter('standby')" id="tab-standby" class="tab-btn px-3 py-1.5 rounded text-gray-600 hover:text-gray-900">Standby</button>
+                            <button onclick="setFilter('warning')" id="tab-warning" class="tab-btn px-3 py-1.5 rounded text-gray-600 hover:text-gray-900">Peringatan</button>
+                        </div>
+
+                        <!-- Dropdowns -->
+                        <div class="flex items-center space-x-2">
+                            <select id="filter-kategori" onchange="renderFleetTable()" class="bg-white border border-borderMuted rounded-md px-3 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-forest-500">
+                                <option value="all">Semua Kategori (VIP & Reguler)</option>
+                                <option value="VIP">Kelas VIP (Luxury)</option>
+                                <option value="Reguler">Kelas Reguler</option>
+                            </select>
+
+                            <select id="filter-zona" onchange="renderFleetTable()" class="bg-white border border-borderMuted rounded-md px-3 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-forest-500">
+                                <option value="all">Semua Wilayah Operasi</option>
+                                <option value="Kota">Kec. Kota Sumenep</option>
+                                <option value="Batuan">Kec. Batuan & Kalianget</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table Data -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-creamDark/60 text-gray-600 font-bold uppercase tracking-wider text-[11px] border-b border-borderMuted">
+                                <tr>
+                                    <th class="py-3 px-4">Unit & Plat Nomor</th>
+                                    <th class="py-3 px-4">Jenis Kendaraan & Supir</th>
+                                    <th class="py-3 px-4">Status Operasional</th>
+                                    <th class="py-3 px-4">Kapasitas Baterai GPS</th>
+                                    <th class="py-3 px-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fleet-table-body" class="divide-y divide-borderMuted/60 text-gray-700">
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-gray-400">
+                                        <i class="fa-solid fa-spinner fa-spin text-lg mr-2 text-forest-500"></i> Memuat data telemetri armada...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Table Footer pagination/summary -->
+                    <div class="px-4 py-3 bg-cream/40 border-t border-borderMuted flex items-center justify-between text-xs text-gray-500">
+                        <span id="table-summary-info">Menampilkan 3 unit armada aktif</span>
+                        <div class="flex items-center space-x-1">
+                            <button class="px-2.5 py-1 bg-white border border-borderMuted rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>&laquo; Prev</button>
+                            <span class="px-2.5 py-1 bg-forest-600 text-white rounded font-bold">1</span>
+                            <button class="px-2.5 py-1 bg-white border border-borderMuted rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>Next &raquo;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 5. RIGHT INSPECTION PANEL (VEHICLE TELEMETRY DOSSIER) -->
+        <aside class="w-80 lg:w-96 bg-white border-l border-borderMuted flex flex-col justify-between shrink-0 shadow-sm custom-scrollbar overflow-y-auto">
+            <div>
+                <!-- Panel Header -->
+                <div class="p-5 border-b border-borderMuted flex items-center justify-between bg-cream/60">
+                    <div>
+                        <h3 class="font-bold text-sm text-gray-900 flex items-center">
+                            <i class="fa-solid fa-id-card-clip text-forest-600 mr-2"></i>
+                            Dossier Telemetri Unit
+                        </h3>
+                        <p class="text-[11px] text-gray-500">Inspeksi status armada real-time</p>
+                    </div>
+                    <span id="dossier-status-pill" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                        TERPILIH
+                    </span>
+                </div>
+
+                <!-- Panel Content Body -->
+                <div class="p-5 space-y-5">
+                    <!-- Car Schematic Mockup Card -->
+                    <div class="bg-gradient-to-br from-forest-800 to-forest-600 rounded-lg p-5 text-white relative overflow-hidden shadow-sm">
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span id="dossier-kategori-badge" class="px-2 py-0.5 bg-yellow-400 text-gray-900 font-extrabold text-[10px] rounded tracking-wider uppercase">
+                                        VIP LUXURY
+                                    </span>
+                                    <h4 id="dossier-plat" class="text-xl font-black mt-2 tracking-wide font-mono">M 9999 VIP</h4>
+                                    <p id="dossier-merk" class="text-xs text-forest-100 font-medium">Toyota Alphard Executive</p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white text-lg">
+                                    <i class="fa-solid fa-satellite-dish live-dot"></i>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-[11px]">
+                                <span><i class="fa-solid fa-lock text-emerald-300 mr-1"></i> GPS Lock Active</span>
+                                <span id="dossier-bat-text" class="font-bold text-emerald-300">85% Baterai</span>
+                            </div>
+                        </div>
+                        <!-- Watermark Icon Background -->
+                        <i class="fa-solid fa-car-rear absolute -right-3 -bottom-4 text-7xl text-white/10 select-none"></i>
+                    </div>
+
+                    <!-- Metadata Attribute List -->
+                    <div class="bg-cream border border-borderMuted rounded-lg p-4 space-y-3 text-xs">
+                        <div class="flex justify-between items-center pb-2 border-b border-borderMuted">
+                            <span class="text-gray-500"><i class="fa-solid fa-user-tie w-4 mr-1 text-gray-400"></i> Supir Ditugaskan</span>
+                            <span id="dossier-driver" class="font-bold text-gray-800">Achmad Fauzi (Mitra)</span>
+                        </div>
+
+                        <div class="flex justify-between items-center pb-2 border-b border-borderMuted">
+                            <span class="text-gray-500"><i class="fa-solid fa-phone w-4 mr-1 text-gray-400"></i> Kontak Supir</span>
+                            <span id="dossier-phone" class="font-mono text-gray-700 font-semibold">+62 812-3456-7890</span>
+                        </div>
+
+                        <div class="flex justify-between items-center pb-2 border-b border-borderMuted">
+                            <span class="text-gray-500"><i class="fa-solid fa-location-arrow w-4 mr-1 text-gray-400"></i> Titik Koordinat</span>
+                            <span id="dossier-coords" class="font-mono text-forest-600 font-bold">-7.0282, 113.8609</span>
+                        </div>
+
+                        <div class="flex justify-between items-center pb-2 border-b border-borderMuted">
+                            <span class="text-gray-500"><i class="fa-solid fa-temperature-three-quarters w-4 mr-1 text-gray-400"></i> Suhu Kabin</span>
+                            <span id="dossier-suhu" class="font-bold text-blue-600">20.5 &deg;C (AC Aktif)</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500"><i class="fa-regular fa-clock w-4 mr-1 text-gray-400"></i> Ping Terakhir</span>
+                            <span id="dossier-ping-time" class="text-gray-600 font-medium">Baru saja (&lt; 1s)</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Telemetry Graph / Status Progress -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-gray-700 mb-1">
+                            <span>Sisa Kapasitas Baterai GPS</span>
+                            <span id="dossier-bat-pct">85%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                            <div id="dossier-bat-bar" class="bg-forest-500 h-2.5 rounded-full transition-all duration-500" style="width: 85%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-2 pt-2">
+                        <a href="/map" class="w-full block text-center py-2.5 bg-forest-600 hover:bg-forest-700 text-white rounded-md text-xs font-bold shadow-xs transition">
+                            <i class="fa-solid fa-map-location mr-1.5"></i> Buka Live Map Peta Sumenep
+                        </a>
+                        <button onclick="sendDriverAlert()" class="w-full py-2 bg-cream hover:bg-gray-100 border border-borderMuted text-gray-700 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-solid fa-paper-plane text-forest-600"></i>
+                            <span>Kirim Peringatan Supir</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Footer Note -->
+            <div class="p-4 bg-cream/70 border-t border-borderMuted text-[11px] text-gray-500 text-center">
+                <i class="fa-solid fa-shield-cat mr-1 text-forest-600"></i>
+                Enkapsulasi & Polimorfisme Model Terverifikasi
+            </div>
+        </aside>
+    </div>
+
+    <!-- 6. STATUS BAR FOOTER -->
+    <footer class="bg-charcoal text-gray-300 px-6 py-2 border-t border-gray-800 text-[11px] flex flex-wrap items-center justify-between shrink-0 select-none">
+        <div class="flex items-center space-x-3">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 live-dot"></span>
+                Java HttpServer: Terkoneksi ke Service Port 8080
+            </span>
+            <span class="hidden sm:inline text-gray-400">|</span>
+            <span class="hidden sm:inline text-gray-400">Protocol: HTTP/1.1 REST API JSON</span>
+        </div>
+        <div class="flex items-center space-x-3 text-gray-400 text-[11px]">
+            <span>M. Davana Yudista Firdausy (3125522002)</span>
+            <span>&bull;</span>
+            <span class="text-gray-300 font-semibold">Modul 9: Rental Car Fleet Monitoring</span>
+        </div>
+    </footer>
+
+    <!-- CLIENT LOGIC SCRIPT -->
+    <script>
+        let fleetData = [];
+        let statsData = {};
+        let currentFilter = 'semua';
+        let selectedCarPlate = null;
+
+        // Mock Driver mapping by plate for rich enterprise dashboard display
+        const driverDirectory = {
+            "M 1001 SM": { driver: "Budi Santoso", phone: "+62 813-2211-9988", zone: "Kec. Kota Sumenep", statusOperasi: "Berjalan" },
+            "M 9999 VIP": { driver: "Achmad Fauzi (Mitra VIP)", phone: "+62 812-3456-7890", zone: "Kec. Batuan & Kalianget", statusOperasi: "Berjalan" },
+            "M 5555 XY": { driver: "M. Ridwan", phone: "+62 856-7788-9900", zone: "Kec. Kota Sumenep", statusOperasi: "Standby" }
+        };
+
+        function fetchDashboardData() {
+            // 1. Fetch Fleet Telemetry
+            fetch('/api/fleet')
+                .then(res => res.json())
+                .then(data => {
+                    fleetData = data;
+                    renderFleetTable();
+                    updateDossier();
+                })
+                .catch(err => console.error("Error fetching fleet:", err));
+
+            // 2. Fetch Summary Stats
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    statsData = data;
+                    document.getElementById('kpi-total').innerText = data.totalMobil ?? '-';
+                    document.getElementById('kpi-disewa').innerText = data.mobilDisewa ?? '-';
+                    document.getElementById('kpi-tersedia').innerText = data.mobilTersedia ?? '-';
+                    document.getElementById('nav-badge-count').innerText = data.totalMobil ?? '3';
+
+                    if (data.totalMobil && data.mobilTersedia) {
+                        const pct = Math.round((data.mobilTersedia / data.totalMobil) * 100);
+                        document.getElementById('kpi-tersedia-pct').innerText = `${pct}% Siap Dipakai`;
+                    }
+                })
+                .catch(err => console.error("Error fetching stats:", err));
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-3 py-1.5 rounded text-gray-600 hover:text-gray-900";
+            });
+            const activeTab = document.getElementById(`tab-${filter}`);
+            if (activeTab) {
+                activeTab.className = "tab-btn px-3 py-1.5 rounded bg-white text-gray-900 shadow-xs font-bold";
+            }
+            renderFleetTable();
+        }
+
+        function renderFleetTable() {
+            const tbody = document.getElementById('fleet-table-body');
+            const searchVal = document.getElementById('global-search').value.toLowerCase();
+            const kategoriVal = document.getElementById('filter-kategori').value;
+            const zonaVal = document.getElementById('filter-zona').value;
+
+            let lowBatteryCount = 0;
+
+            const filtered = fleetData.filter(car => {
+                const meta = driverDirectory[car.plat] || { driver: "Driver Reguler", phone: "-", zone: "Kec. Kota", statusOperasi: "Standby" };
+
+                if (car.baterai < 20) lowBatteryCount++;
+
+                // Tab Filter
+                if (currentFilter === 'aktif' && meta.statusOperasi !== 'Berjalan') return false;
+                if (currentFilter === 'standby' && meta.statusOperasi !== 'Standby') return false;
+                if (currentFilter === 'warning' && car.baterai >= 20) return false;
+
+                // Dropdown Kategori
+                if (kategoriVal !== 'all' && car.kategori !== kategoriVal) return false;
+
+                // Dropdown Zona
+                if (zonaVal !== 'all' && !meta.zone.includes(zonaVal)) return false;
+
+                // Search Query
+                if (searchVal) {
+                    const matchPlat = car.plat.toLowerCase().includes(searchVal);
+                    const matchMerk = car.merk.toLowerCase().includes(searchVal);
+                    const matchDriver = meta.driver.toLowerCase().includes(searchVal);
+                    const matchZone = meta.zone.toLowerCase().includes(searchVal);
+                    if (!matchPlat && !matchMerk && !matchDriver && !matchZone) return false;
+                }
+
+                return true;
+            });
+
+            document.getElementById('kpi-lowbat').innerText = lowBatteryCount;
+            document.getElementById('table-summary-info').innerText = `Menampilkan ${filtered.length} dari ${fleetData.length} unit armada`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-10 text-center text-gray-400">
+                            <i class="fa-solid fa-car-burst text-3xl mb-2 text-gray-300"></i>
+                            <p class="font-medium">Tidak ada kendaraan yang sesuai dengan kriteria filter.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(car => {
+                const meta = driverDirectory[car.plat] || { driver: "Driver Reguler", phone: "-", zone: "Kec. Kota", statusOperasi: "Standby" };
+                const isSelected = selectedCarPlate === car.plat;
+                const isVIP = car.kategori === 'VIP';
+
+                // Status Badges
+                let statusBadge = '';
+                if (meta.statusOperasi === 'Berjalan') {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5 live-dot"></span>Berjalan (GPS Aktif)
+                    </span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Standby di Pool
+                    </span>`;
+                }
+
+                // Battery Bar Color
+                let batColor = "bg-forest-500";
+                if (car.baterai < 20) batColor = "bg-rose-500";
+                else if (car.baterai < 50) batColor = "bg-amber-500";
+
+                // Avatar initials
+                const initials = car.plat.substring(0, 2);
+
+                return `
+                    <tr class="hover:bg-cream transition cursor-pointer ${isSelected ? 'bg-creamDark/80' : ''}" onclick="selectCar('${car.plat}')">
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full ${isVIP ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 'bg-forest-100 text-forest-700 border-forest-300'} border flex items-center justify-center font-black text-xs font-mono">
+                                    ${initials}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-900 font-mono text-xs flex items-center gap-1.5">
+                                        ${car.plat}
+                                        ${isVIP ? '<span class="text-[9px] bg-yellow-400 text-gray-900 px-1 py-0.2 rounded font-extrabold">VIP</span>' : ''}
+                                    </div>
+                                    <div class="text-[11px] text-gray-500">${meta.zone}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-semibold text-gray-800">${car.merk}</div>
+                            <div class="text-[11px] text-gray-500 flex items-center gap-1">
+                                <i class="fa-solid fa-user text-[10px] text-gray-400"></i> ${meta.driver}
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            ${statusBadge}
+                        </td>
+                        <td class="py-3.5 px-4 min-w-[140px]">
+                            <div class="flex items-center justify-between text-[11px] mb-1">
+                                <span class="font-semibold text-gray-700">${car.baterai}%</span>
+                                <span class="text-gray-400 text-[10px]">${car.baterai > 20 ? 'Optimal' : 'Kritis'}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                <div class="${batColor} h-1.5 rounded-full" style="width: ${car.baterai}%"></div>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            <button onclick="event.stopPropagation(); selectCar('${car.plat}')" 
+                                class="px-2.5 py-1 text-xs font-bold rounded border ${isSelected ? 'bg-forest-600 text-white border-forest-600' : 'bg-white hover:bg-forest-50 text-forest-600 border-forest-300'} transition flex items-center justify-center space-x-1 mx-auto">
+                                <i class="fa-solid fa-eye text-[11px]"></i>
+                                <span>Periksa</span>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Default selection if none selected
+            if (!selectedCarPlate && fleetData.length > 0) {
+                selectCar(fleetData[0].plat);
+            }
+        }
+
+        function selectCar(plat) {
+            selectedCarPlate = plat;
+            renderFleetTable();
+            updateDossier();
+        }
+
+        function updateDossier() {
+            if (!selectedCarPlate) return;
+            const car = fleetData.find(c => c.plat === selectedCarPlate);
+            if (!car) return;
+
+            const meta = driverDirectory[car.plat] || { driver: "Driver Reguler", phone: "-", zone: "Kec. Kota", statusOperasi: "Standby" };
+            const isVIP = car.kategori === 'VIP';
+
+            document.getElementById('dossier-plat').innerText = car.plat;
+            document.getElementById('dossier-merk').innerText = car.merk;
+            document.getElementById('dossier-kategori-badge').innerText = isVIP ? 'VIP LUXURY' : 'REGULER FLEET';
+            document.getElementById('dossier-kategori-badge').className = isVIP 
+                ? 'px-2 py-0.5 bg-yellow-400 text-gray-900 font-extrabold text-[10px] rounded tracking-wider uppercase'
+                : 'px-2 py-0.5 bg-forest-200 text-forest-800 font-extrabold text-[10px] rounded tracking-wider uppercase';
+
+            document.getElementById('dossier-driver').innerText = meta.driver;
+            document.getElementById('dossier-phone').innerText = meta.phone;
+            document.getElementById('dossier-coords').innerText = `${car.lat.toFixed(6)}, ${car.lng.toFixed(6)}`;
+            document.getElementById('dossier-bat-text').innerText = `${car.baterai}% Baterai`;
+            document.getElementById('dossier-bat-pct').innerText = `${car.baterai}%`;
+            document.getElementById('dossier-bat-bar').style.width = `${car.baterai}%`;
+
+            if (car.suhu) {
+                document.getElementById('dossier-suhu').innerHTML = `${car.suhu.toFixed(1)} &deg;C <span class="text-blue-600 font-bold">(AC Aktif)</span>`;
+            } else {
+                document.getElementById('dossier-suhu').innerHTML = `<span class="text-gray-400">Standar Pabrik</span>`;
+            }
+
+            document.getElementById('dossier-status-pill').innerText = meta.statusOperasi.toUpperCase();
+            document.getElementById('dossier-status-pill').className = meta.statusOperasi === 'Berjalan'
+                ? 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200'
+                : 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+            
+            document.getElementById('dossier-ping-time').innerText = new Date().toLocaleTimeString('id-ID', { hour12: false }) + ' WIB';
+        }
+
+        function refreshData() {
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('fa-spin');
+            fetchDashboardData();
+            setTimeout(() => icon.classList.remove('fa-spin'), 600);
+        }
+
+        function sendDriverAlert() {
+            if (!selectedCarPlate) return;
+            const car = fleetData.find(c => c.plat === selectedCarPlate);
+            const meta = driverDirectory[car.plat] || { driver: "Driver" };
+            alert(`[NOTIFIKASI TERKIRIM KE SUPIR]\n\nPesan peringatan telemetri GPS telah dikirim ke:\nSupir: ${meta.driver}\nUnit: ${car.plat} (${car.merk})\nStatus Baterai: ${car.baterai}%\nKoordinat: ${car.lat.toFixed(4)}, ${car.lng.toFixed(4)}`);
+        }
+
+        function downloadCSV() {
+            if (!fleetData.length) return alert('Data belum siap untuk diunduh.');
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Plat Nomor,Merk,Kategori,Baterai,Latitude,Longitude,Supir,Status\n";
+            fleetData.forEach(car => {
+                const meta = driverDirectory[car.plat] || { driver: "Driver", statusOperasi: "Standby" };
+                csvContent += `"${car.plat}","${car.merk}","${car.kategori}","${car.baterai}%","${car.lat}","${car.lng}","${meta.driver}","${meta.statusOperasi}"\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `fleet_sumenep_export_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('global-search').addEventListener('input', renderFleetTable);
+
+        // Auto Poll every 1 second
+        setInterval(fetchDashboardData, 1000);
+        fetchDashboardData();
+    </script>
+</body>
+</html>

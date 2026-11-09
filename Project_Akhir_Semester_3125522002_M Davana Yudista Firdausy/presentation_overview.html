@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Presentasi Capstone Project PBO - M. Davana Yudista Firdausy</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 12mm 15mm;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif, Arial, sans-serif;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            line-height: 1.4;
+            font-size: 11pt;
+        }
+        .slide {
+            page-break-after: always;
+            height: 175mm;
+            border: 2px solid #000;
+            padding: 15mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .slide:last-child {
+            page-break-after: avoid;
+        }
+        .slide-header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 12px;
+        }
+        .slide-header h1 {
+            margin: 0;
+            font-size: 16pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .slide-header h2 {
+            margin: 4px 0 0 0;
+            font-size: 12pt;
+            font-weight: normal;
+            color: #333;
+        }
+        .slide-footer {
+            position: absolute;
+            bottom: 8mm;
+            left: 15mm;
+            right: 15mm;
+            border-top: 1px solid #888;
+            padding-top: 3px;
+            font-size: 9pt;
+            display: flex;
+            justify-content: space-between;
+        }
+        .content {
+            font-size: 10.5pt;
+        }
+        ul {
+            margin: 6px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        .highlight-box {
+            border: 1px solid #000;
+            background: #f9f9f9;
+            padding: 8px 12px;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 10pt;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 5px 8px;
+            text-align: left;
+        }
+        th {
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SLIDE 1 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h1>Slide 1: Identitas Proyek, Permasalahan, & Target Pengguna</h1>
+            <h2>FleetSumenep - Rental Car Fleet Monitoring & Interactive Bay Management System</h2>
+        </div>
+        <div class="content">
+            <div class="highlight-box">
+                <strong>Identitas Mahasiswa:</strong> M. Davana Yudista Firdausy (NRP: 3125522002) | Kelas: A D3 TI-SM<br>
+                <strong>Institusi:</strong> Politeknik Elektronika Negeri Surabaya (PENS PSDKU Sumenep) &bull; Tahun 2026
+            </div>
+            <p><strong>Latar Belakang Permasalahan:</strong></p>
+            <ul>
+                <li>Pengelolaan armada rental mobil pada depot operasional rentan mengalami <em>double-booking</em> pada unit yang sedang beroperasi di jalan.</li>
+                <li>Kurangnya visualisasi real-time alokasi lot bay parkir garasi pool dan pemantauan telemetri GPS armada.</li>
+                <li>Operasi mutasi data pada sistem konvensional tidak menerapkan validasi defensif sebelum mutasi state, sehingga memicu kerusakan dan inkonsistensi data ketika operasi ditolak.</li>
+            </ul>
+            <p><strong>Pengguna Sasaran (Target Users):</strong></p>
+            <ul>
+                <li><strong>Dispatcher Armada:</strong> Memantau pergerakan kendaraan di peta dan status baterai/kabin.</li>
+                <li><strong>Petugas Parkir Depot:</strong> Mengelola alokasi lot bay dan kapasitas parkir mobil standby.</li>
+                <li><strong>Front-Office / Kasir:</strong> Melayani transaksi sewa, kalkulasi tarif polimorfis, dan pencetakan invoice.</li>
+            </ul>
+        </div>
+        <div class="slide-footer">
+            <span>FleetSumenep Capstone Project</span>
+            <span>Slide 1 dari 5</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h1>Slide 2: Fitur Utama & Batasan Aplikasi</h1>
+            <h2>Kemampuan Sistem dan Parameter Batasan Operasional</h2>
+        </div>
+        <div class="content">
+            <p><strong>Fitur Utama Aplikasi:</strong></p>
+            <ul>
+                <li><strong>Dual-Launcher Hybrid Architecture:</strong> Mendukung antarmuka GUI Native Desktop (JavaFX WebView + Leaflet Map) dan Console CLI interaktif (P13).</li>
+                <li><strong>Live Telemetri GPS Fleet:</strong> Memetakan posisi koordinat armada secara interaktif di wilayah Sumenep, Madura beserta telemetri baterai dan suhu kabin VIP.</li>
+                <li><strong>Interactive Bay Lot Management:</strong> Visualisasi grid kapasitas parkir 8 hingga 32 slot bay dengan perhitungan rasio okupansi dinamis.</li>
+                <li><strong>Defensive Rental Engine:</strong> Pencegahan double-renting, pemblokiran mobil dalam perbaikan, dan kalkulasi tagihan multi-day rental secara polimorfis.</li>
+                <li><strong>Dual-Engine Persistence:</strong> Penyimpanan basis data relasional MySQL (JDBC ACID) serta persistensi berkas teks pipe-delimited dengan proteksi <em>dirty-flag</em>.</li>
+            </ul>
+            <p><strong>Batasan Sistem:</strong></p>
+            <ul>
+                <li>Kapasitas fisik bay parkir pool depot dibatasi antara 4 hingga 32 slot.</li>
+                <li>Penyimpanan file teks menggunakan delimiter karakter pipe (<code>|</code>), sehingga data input dilarang mengandung karakter tersebut.</li>
+            </ul>
+        </div>
+        <div class="slide-footer">
+            <span>FleetSumenep Capstone Project</span>
+            <span>Slide 2 dari 5</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h1>Slide 3: UML Class Diagram & Pembagian Tanggung Jawab</h1>
+            <h2>Struktur Dekomposisi Objek Berorientasi Domain</h2>
+        </div>
+        <div class="content">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Komponen / Kelas</th>
+                        <th style="width: 25%;">Peran & Relasi</th>
+                        <th>Tanggung Jawab Utama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>PelacakGPS</code></td>
+                        <td>Interface</td>
+                        <td>Mendefinisikan kontrak telemetri posisi geografis (lat, lng) dan daya baterai.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Kendaraan</code></td>
+                        <td>Abstract Superclass</td>
+                        <td>Enkapsulasi plat nomor immutable, merk, tarif harian, kondisi, odometer, dan slot.</td>
+                    </tr>
+                    <tr>
+                        <td><code>MobilReguler</code> & <code>MobilVIP</code></td>
+                        <td>Subclasses (Inheritance)</td>
+                        <td>Implementasi polimorfis perhitungan biaya sewa; penambahan atribut suhu kabin pada VIP.</td>
+                    </tr>
+                    <tr>
+                        <td><code>PerusahaanRental</code></td>
+                        <td>Aggregator Manager</td>
+                        <td>Mengelola kumpulan armada (List, Map, Set), slot parkir depot, dan transaksi sewa.</td>
+                    </tr>
+                    <tr>
+                        <td><code>FleetFileRepository</code></td>
+                        <td>File Repository (P12)</td>
+                        <td>Menangani operasi I/O file teks secara defensif dengan koleksi sementara.</td>
+                    </tr>
+                    <tr>
+                        <td><code>model.exception.*</code></td>
+                        <td>Custom Exceptions (P10)</td>
+                        <td>Menangani kondisi khusus: <code>KendaraanTidakTersedia</code>, <code>KendaraanRusak</code>, <code>KapasitasPenuh</code>.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="slide-footer">
+            <span>FleetSumenep Capstone Project</span>
+            <span>Slide 3 dari 5</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h1>Slide 4: Penerapan Pilar OOP, Validasi State, & Persistensi</h1>
+            <h2>Integritas Data dan Kebijakan Desain Perangkat Lunak</h2>
+        </div>
+        <div class="content">
+            <p><strong>1. Penerapan Pilar OOP:</strong></p>
+            <ul>
+                <li><strong>Enkapsulasi:</strong> Seluruh field data berstatus <code>private</code> dengan mutator yang memvalidasi rentang nilai logis.</li>
+                <li><strong>Pewarisan & Polimorfisme:</strong> Subclass menurunkan perilaku umum dan meng-override <code>hitungBiayaSewa()</code> serta <code>toJson()</code>.</li>
+            </ul>
+            <p><strong>2. Validasi State Defensif (Modul 10):</strong></p>
+            <ul>
+                <li><strong>State Invariance:</strong> Validasi pra-syarat (ketersediaan, kondisi mesin, durasi, nama) diselesaikan sebelum mutasi state field dilakukan.</li>
+                <li><strong>Penolakan Atomik:</strong> Operasi yang gagal melempar eksepsi tanpa meninggalkan efek samping (side-effects) pada objek.</li>
+            </ul>
+            <p><strong>3. Pengelolaan Kumpulan Objek & Persistensi (Modul 11–13):</strong></p>
+            <ul>
+                <li>Menggunakan <code>List&lt;Kendaraan&gt;</code>, <code>Map&lt;String, Kendaraan&gt;</code>, dan <code>Set&lt;String&gt;</code> untuk integritas keunikan plat.</li>
+                <li>Pemuatan file defensif membaca seluruh baris ke koleksi sementara sebelum memperbarui state aktif memori.</li>
+                <li>Mekanisme <em>Dirty Flag</em> (<code>berubah</code>) mencegah kehilangan data saat keluar atau memuat ulang.</li>
+            </ul>
+        </div>
+        <div class="slide-footer">
+            <span>FleetSumenep Capstone Project</span>
+            <span>Slide 4 dari 5</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h1>Slide 5: Hasil Pengujian, Keterbatasan, & Rencana Masa Depan</h1>
+            <h2>Verifikasi Kualitas Sistem dan Rencana Peningkatan</h2>
+        </div>
+        <div class="content">
+            <div class="highlight-box">
+                <strong>Hasil Uji Regresi Otomatis (Modul 14):</strong><br>
+                12 dari 12 Skenario Pengujian Lulus (100% PASS) mencakup uji penambahan valid, penolakan plat duplikat, pencegahan mobil rusak, penolakan double-renting, konsistensi rollback lot parkir, dan verifikasi muat ulang file teks.
+            </div>
+            <p><strong>Keterbatasan Sistem Saat Ini:</strong></p>
+            <ul>
+                <li>Simulasi GPS telemetri pada WebView Leaflet masih menggunakan generator titik simulasi lokal.</li>
+                <li>Penyimpanan file teks sederhana belum mendukung transaksi multi-user simultan di tingkat berkas OS.</li>
+            </ul>
+            <p><strong>Rencana Pengembangan Masa Depan:</strong></p>
+            <ul>
+                <li>Integrasi telemetri GPS nyata melalui perangkat keras IoT OBD-II berbasis protokol MQTT.</li>
+                <li>Penjadwalan perawatan berkala armada secara otomatis berdasarkan akumulasi odometer harian.</li>
+                <li>Dukungan arsitektur multi-cabang depot antarkabupaten di Madura.</li>
+            </ul>
+        </div>
+        <div class="slide-footer">
+            <span>FleetSumenep Capstone Project</span>
+            <span>Slide 5 dari 5</span>
+        </div>
+    </div>
+
+</body>
+</html>

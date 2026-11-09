@@ -1,0 +1,2 @@
+B001|Judul Pertama
+B001|Judul Kedua Duplikat

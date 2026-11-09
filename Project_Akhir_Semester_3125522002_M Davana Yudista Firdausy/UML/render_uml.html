@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>UML Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#e0f2fe',
+                primaryTextColor: '#0369a1',
+                primaryBorderColor: '#0284c7',
+                lineColor: '#0284c7',
+                secondaryColor: '#f0fdf4',
+                tertiaryColor: '#fefce8',
+                fontSize: '14px'
+            }
+        });
+    </script>
+    <style>
+        body {
+            background: #ffffff;
+            margin: 0;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: sans-serif;
+        }
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="mermaid">
+classDiagram
+    class PelacakGPS {
+        <<interface>>
+        + getLat() double
+        + getLng() double
+        + getBaterai() int
+    }
+
+    class Kendaraan {
+        <<abstract>>
+        - platNomor : String
+        - merk : String
+        - lat : double
+        - lng : double
+        - baterai : int
+        + Kendaraan(platNomor: String, merk: String, startLat: double, startLng: double, baterai: int)
+        + setLokasi(lat: double, lng: double) void
+        + setBaterai(baterai: int) void
+        + getPlatNomor() String
+        + getMerk() String
+        + getLat() double
+        + getLng() double
+        + getBaterai() int
+        + getKategori()* String
+        + toJson() String
+    }
+    PelacakGPS <|.. Kendaraan : implements
+
+    class MobilReguler {
+        + MobilReguler(plat: String, merk: String, lat: double, lng: double, bat: int)
+        + getKategori() String
+    }
+    Kendaraan <|-- MobilReguler : extends
+
+    class MobilVIP {
+        - suhuKabin : double
+        + MobilVIP(plat: String, merk: String, lat: double, lng: double, bat: int, suhuKabin: double)
+        + getKategori() String
+        + toJson() String
+    }
+    Kendaraan <|-- MobilVIP : extends
+
+    class PerusahaanRental {
+        - namaCabang : String
+        - armada : List~Kendaraan~
+        - armadaDisewa : List~Kendaraan~
+        + PerusahaanRental(namaCabang: String)
+        + registerArmada(k: Kendaraan) void
+        + sewakanArmada(k: Kendaraan) void
+        + getArmada() List~Kendaraan~
+        + getArmadaDisewa() List~Kendaraan~
+        + getFleetJson() String
+        + getStatsJson(totalPelanggan: int) String
+    }
+    PerusahaanRental "1" o-- "*" Kendaraan : Aggregation
+    </div>
+</body>
+</html>

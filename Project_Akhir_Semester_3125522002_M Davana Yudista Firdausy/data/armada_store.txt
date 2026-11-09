@@ -1,0 +1,5 @@
+M 1001 SM|Toyota Avanza Veloz|Reguler|-7.0059|113.8782|88|600000.0|34200|Sangat Baik|Mulus, Bodi Bersih, AC Dingin|Slot A-01|DISEWA|20.0|Ahmad Dani (Dishub Kab. Sumenep)|false
+M 9999 VIP|Toyota Alphard Executive|VIP|-7.0282|113.8609|94|2400000.0|18500|Sangat Baik|Interior Mewah, Kulit Nappa, AC Dual Zone|Slot A-02|DISEWA|20.5|Rombongan Tamu Pemkab Sumenep|true
+M 5555 XY|Toyota Innova Reborn|Reguler|-7.015|113.865|100|900000.0|42000|Baik|Kabin Lapang, Servis Rutin Auto2000|Slot A-03|STANDBY|20.0||false
+M 8888 VIP|Hyundai Palisade Signature|VIP|-7.0142|113.8642|96|2800000.0|12000|Sangat Baik|Captain Seat, Sunroof, Audio Infinity|Slot A-04|STANDBY|19.8||false
+M 2345 AB|Honda Brio RS|Reguler|-7.0162|113.8662|85|500000.0|28000|Dalam Perbaikan|Sedang servis rem & ganti oli di bengkel resmi|Slot B-01|STANDBY|20.0||false
