@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetSumenep Tycoon - Indonesian Car Rental Management Simulation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container-app">
+        <!-- 1. TOP OPERATIONAL HUD -->
+        <header class="top-hud">
+            <div class="hud-brand">
+                <div class="brand-beacon"></div>
+                <div class="brand-info">
+                    <h1 id="hud-garage-name">Garasi Magang Sumenep</h1>
+                    <span class="badge-rating">★ 5.0 Rental Terpercaya</span>
+                </div>
+            </div>
+
+            <!-- Financial Metric & Time Tracker -->
+            <div class="hud-metrics">
+                <div class="cash-card">
+                    <span class="cash-label">Kas Operasional</span>
+                    <span class="cash-val" id="hud-cash-val">Rp 250.000.000</span>
+                </div>
+                <div class="clock-card" id="hud-clock-val">
+                    ⏱️ Hari 1 (Senin), 08:00 WIB
+                </div>
+            </div>
+
+            <!-- Simulation Speed Controls -->
+            <div class="speed-group">
+                <button class="btn-speed" id="spd-pause" onclick="setSimSpeed(0)">⏸️</button>
+                <button class="btn-speed" id="spd-half" onclick="setSimSpeed(0.5)">½x</button>
+                <button class="btn-speed active" id="spd-1x" onclick="setSimSpeed(1)">1x</button>
+                <button class="btn-speed" id="spd-2x" onclick="setSimSpeed(2)">2x</button>
+                <button class="btn-speed" id="spd-4x" onclick="setSimSpeed(4)">4x</button>
+            </div>
+        </header>
+
+        <!-- 2. STATS BANNER PILLS -->
+        <div class="stats-banner">
+            <div class="stat-pill-card">
+                <div class="label">Total Armada</div>
+                <div class="val" id="stat-total-armada">3 Unit</div>
+            </div>
+            <div class="stat-pill-card">
+                <div class="label">Unit Disewa</div>
+                <div class="val" id="stat-onroad" style="color: var(--primary-main);">0 Unit</div>
+            </div>
+            <div class="stat-pill-card">
+                <div class="label">Kapasitas Garasi</div>
+                <div class="val" id="stat-kapasitas">8 Bay Slot</div>
+            </div>
+            <div class="stat-pill-card">
+                <div class="label">Supir Tetap</div>
+                <div class="val" id="stat-supir">2 Orang</div>
+            </div>
+        </div>
+
+        <!-- 3. TABS CONTAINER -->
+
+        <!-- TAB 1: ANTRIAN PESANAN & VERIFIKASI RISIKO -->
+        <section id="tab-pesanan" class="tab-content active">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="font-size:14px; font-weight:800; color:var(--primary-dark); margin:0;">
+                    📋 Antrian Masuk & Verifikasi Profil Pelanggan (Risk Screening)
+                </h2>
+                <span id="order-queue-count" style="font-size:11.5px; font-weight:700; color:var(--text-secondary);">
+                    0 Calon Penyewa
+                </span>
+            </div>
+
+            <div id="order-list-container">
+                <!-- Rendered dynamically by app.js -->
+            </div>
+        </section>
+
+        <!-- TAB 2: JADWAL TIMELINE 7-HARI (GANTT VIEW) -->
+        <section id="tab-jadwal" class="tab-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="font-size:14px; font-weight:800; color:var(--primary-dark); margin:0;">
+                    📅 Jadwal Reservasi Armada 7-Hari (Gantt Schedule Grid)
+                </h2>
+                <span style="font-size:11px; color:var(--text-muted);">Visualisasi Collision-Free Rental</span>
+            </div>
+
+            <div class="gantt-table-card">
+                <div class="gantt-grid" id="gantt-grid-container">
+                    <!-- Rendered by app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: KATALOG ARMADA & UPGRADE DOSSIER -->
+        <section id="tab-armada" class="tab-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="font-size:14px; font-weight:800; color:var(--primary-dark); margin:0;">
+                    🚗 Katalog & Manajemen Armada Garasi
+                </h2>
+                <button class="btn-action btn-accept" onclick="openBeliModal()">
+                    + Beli Armada Baru
+                </button>
+            </div>
+
+            <div class="fleet-grid" id="fleet-list-container">
+                <!-- Rendered by app.js -->
+            </div>
+        </section>
+
+        <!-- TAB 4: PENGEMBANGAN USAHA & LAPORAN KAS -->
+        <section id="tab-usaha" class="tab-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="font-size:14px; font-weight:800; color:var(--primary-dark); margin:0;">
+                    💼 Pengembangan Usaha, Fasilitas & Arus Kas
+                </h2>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+                <!-- Upgrade Garasi -->
+                <div class="stat-pill-card">
+                    <div style="font-size:13px; font-weight:800; color:var(--primary-dark);">🏗️ Perluas Garasi (+4 Bay Slot)</div>
+                    <div style="font-size:11.5px; color:var(--text-secondary); margin:6px 0;">
+                        Biaya Sewa Lahan: <strong>Rp 15.000.000</strong>
+                    </div>
+                    <button class="btn-action btn-accept" style="width:100%;" onclick="actionPerluasGarasi()">
+                        Sewa Lahan Tambahan
+                    </button>
+                </div>
+
+                <!-- Rekrut Supir -->
+                <div class="stat-pill-card">
+                    <div style="font-size:13px; font-weight:800; color:var(--primary-dark);">👨✈️ Rekrut Supir Baru</div>
+                    <div style="font-size:11.5px; color:var(--text-secondary); margin:6px 0;">
+                        Biaya Rekrutmen & Pelatihan: <strong>Rp 1.000.000</strong>
+                    </div>
+                    <button class="btn-action btn-accept" style="width:100%;" onclick="actionRekrutSupir()">
+                        Rekrut Supir Profesional
+                    </button>
+                </div>
+            </div>
+
+            <!-- Buku Kas Transaksi -->
+            <div class="stat-pill-card">
+                <div style="font-size:13px; font-weight:800; color:var(--primary-dark); margin-bottom:10px;">
+                    📊 Riwayat Pembukuan Arus Kas (Audit Trail P1-P4)
+                </div>
+                <div id="transaksi-list-container" style="font-size:11.5px;">
+                    <!-- Rendered by app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: SISTEM, FILE P12 & KREDENSIAL -->
+        <section id="tab-sistem" class="tab-content">
+            <div class="stat-pill-card" style="margin-bottom:14px;">
+                <div style="font-size:13px; font-weight:800; color:var(--primary-dark); margin-bottom:8px;">
+                    💾 Persistensi Penyimpanan File (Modul P12)
+                </div>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0 0 10px 0;">
+                    Simpan state armada, kas, dan waktu operasional ke file flat berpemisah pipa (<code>data/gamestate.txt</code>).
+                </p>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-action btn-accept" onclick="actionSimpanGame()">
+                        💾 Simpan Game ke File (P12)
+                    </button>
+                    <button class="btn-action btn-mitigate" onclick="actionMuatGame()">
+                        📂 Muat Ulang Game dari File
+                    </button>
+                </div>
+            </div>
+
+            <!-- Author & Academic Info -->
+            <div class="stat-pill-card">
+                <div style="font-size:13px; font-weight:800; color:var(--primary-dark); margin-bottom:8px;">
+                    🎓 Identitas Pengembang Capstone PBO
+                </div>
+                <div style="font-size:12px; line-height:1.6; color:var(--text-secondary);">
+                    <strong>Nama Mahasiswa:</strong> M. Davana Yudista Firdausy<br/>
+                    <strong>NRP:</strong> 3125522002<br/>
+                    <strong>Program Studi / Kelas:</strong> A D3 Teknik Informatika<br/>
+                    <strong>Institusi:</strong> Politeknik Elektronika Negeri Surabaya (PENS PSDKU Sumenep)<br/>
+                    <strong>Topik Tugas Akhir:</strong> Indonesian Car Rental Tycoon Simulation (P1–P15 Full Integration)
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 4. FLOATING BOTTOM DOCK NAVIGATION -->
+    <nav class="bottom-dock">
+        <button class="dock-btn active" id="dock-btn-pesanan" onclick="switchNavTab('pesanan')">
+            📋 Pesanan <span class="dock-badge" id="dock-badge-order">0</span>
+        </button>
+        <button class="dock-btn" id="dock-btn-jadwal" onclick="switchNavTab('jadwal')">
+            📅 Jadwal
+        </button>
+        <button class="dock-btn" id="dock-btn-armada" onclick="switchNavTab('armada')">
+            🚗 Armada
+        </button>
+        <button class="dock-btn" id="dock-btn-usaha" onclick="switchNavTab('usaha')">
+            💼 Usaha
+        </button>
+        <button class="dock-btn" id="dock-btn-sistem" onclick="switchNavTab('sistem')">
+            ⚙️ Sistem
+        </button>
+    </nav>
+
+    <!-- 5. MODAL KRISIS PENGGELAPAN MOBIL (5 PILIHAN RESOLUSI) -->
+    <div id="modal-krisis" class="modal-overlay">
+        <div class="modal-card">
+            <h3 class="modal-title">🚨 DARURAT: MOBIL DIBAWA KABUR / DIGELAPKAN!</h3>
+            <p id="krisis-desc-text" style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+                Penyewa tidak kunjung mengembalikan armada dan koordinat GPS menunjukkan unit bergerak ke luar zona aman!
+            </p>
+
+            <div class="crisis-options-grid">
+                <button class="btn-crisis-opt" onclick="resolveCrisis('telepon')">
+                    <span>1. 📞 Telepon Nomor Penyewa</span>
+                    <span style="font-size:10px; color:var(--text-muted);">Gratis</span>
+                </button>
+                <button class="btn-crisis-opt" id="btn-opt-cutoff" onclick="resolveCrisis('cutoff')">
+                    <span>2. 📡 Matikan Mesin Remote (Immobilizer)</span>
+                    <span style="font-size:10px; color:var(--primary-main);">Wajib GPS Aktif</span>
+                </button>
+                <button class="btn-crisis-opt" onclick="resolveCrisis('polisi')">
+                    <span>3. 🚔 Lapor Polisi & Buat BAP</span>
+                    <span style="font-size:10px; color:var(--accent-red);">Biaya Rp 5.000.000</span>
+                </button>
+                <button class="btn-crisis-opt" onclick="resolveCrisis('akamsi')">
+                    <span>4. ⚔️ By One dengan Akamsi / Ormas</span>
+                    <span style="font-size:10px; color:var(--accent-amber);">Mediasi Lapangan</span>
+                </button>
+                <button class="btn-crisis-opt" onclick="resolveCrisis('ikhlas')">
+                    <span>5. 🕊️ Ikhlas Total (Write-Off Aset)</span>
+                    <span style="font-size:10px; color:var(--text-muted);">Hapus dari Pembukuan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. MODAL BELI ARMADA BARU -->
+    <div id="modal-beli" class="modal-overlay">
+        <div class="modal-card" style="border-color:var(--border-subtle);">
+            <h3 style="font-size:15px; font-weight:800; color:var(--primary-dark); margin:0 0 12px 0;">
+                🚗 Beli Armada Rental Baru
+            </h3>
+            <div style="font-size:12px; margin-bottom:12px;">
+                <label style="font-weight:700;">Kategori Mobil:</label>
+                <select id="beli-kategori" style="width:100%; padding:8px; border-radius:8px; border:1px solid #cbd5e1; margin-top:4px;" onchange="updateBeliPreset()">
+                    <option value="LCGC">LCGC (Sigra / Ayla) - Rp 145 jt | Tarif Rp 350 rb/hr</option>
+                    <option value="KELUARGA" selected>Keluarga (Avanza / Xpander) - Rp 265 jt | Tarif Rp 550 rb/hr</option>
+                    <option value="MEDIUM_SUV">Medium SUV (Innova Reborn) - Rp 460 jt | Tarif Rp 900 rb/hr</option>
+                    <option value="MEWAH_VIP">Mewah VIP (Alphard Luxury) - Rp 1,4 M | Tarif Rp 2,8 jt/hr</option>
+                </select>
+            </div>
+            <div style="font-size:12px; margin-bottom:12px;">
+                <label style="font-weight:700;">Plat Nomor (Immutable):</label>
+                <input type="text" id="beli-plat" style="width:100%; padding:8px; border-radius:8px; border:1px solid #cbd5e1; margin-top:4px;" placeholder="Contoh: M 4455 SM">
+            </div>
+            <div style="font-size:12px; margin-bottom:16px;">
+                <label style="font-weight:700;">Merk & Model:</label>
+                <input type="text" id="beli-merk" style="width:100%; padding:8px; border-radius:8px; border:1px solid #cbd5e1; margin-top:4px;" value="Toyota All New Avanza">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn-action btn-mitigate" onclick="closeBeliModal()">Batal</button>
+                <button class="btn-action btn-accept" onclick="submitBeliMobil()">Konfirmasi Beli Unit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Alert -->
+    <div id="toast-box"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
