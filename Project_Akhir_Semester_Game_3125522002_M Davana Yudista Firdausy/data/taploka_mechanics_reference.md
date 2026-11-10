@@ -108,3 +108,4 @@ Sistem simulasi mengevaluasi perubahan musim secara dinamis:
 - **Nataru (Natal & Tahun Baru)**: Durasi 6 hari, pengali pesanan 1.4x, kenaikan tarif sewa 1.25x.
 - **Bulan Puasa Ramadhan**: Durasi 6 hari, pesanan melambat 0.6x, tarif 0.9x.
 - **Kenaikan BBM**: Durasi 8 hari, penurunan pesanan 0.7x.
+
