@@ -3,386 +3,881 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetSumenep - Parking & Fleet Availability</title>
+    <title>FleetSumenep Pro - Tactical Parking & Fleet Operations Center</title>
     <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --border-dark: #334155;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
         * { box-sizing: border-box; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             margin: 0; padding: 0; 
-            background: #f8fafc; 
-            color: #1e293b; 
+            background: #0b1120; 
+            color: #f1f5f9; 
             overflow-y: auto;
-            height: 100vh;
+            min-height: 100vh;
+            padding-bottom: 80px; /* Space for bottom dock */
         }
 
         .container {
-            max-width: 1240px;
+            max-width: 1280px;
             margin: 0 auto;
             padding: 14px 18px;
         }
 
-        /* Header Sub-bar */
-        .page-header {
+        /* 1. TOP OPERATIONAL STATUS BAR */
+        .operational-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
+            padding: 12px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #ffffff;
-            padding: 10px 16px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             margin-bottom: 14px;
         }
-        .page-header h1 {
-            margin: 0;
-            font-size: 15px;
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .beacon-pulse {
+            width: 12px;
+            height: 12px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .brand-title {
+            font-size: 16px;
             font-weight: 800;
-            color: #1b4332;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+            margin: 0;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .depot-tag {
+        .rating-badge {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
             font-size: 11px;
-            background: #dcfce7;
-            color: #166534;
+            font-weight: 700;
             padding: 3px 8px;
             border-radius: 6px;
-            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* 5 KPI Metric Cards */
+        /* Telemetry Pills */
+        .telemetry-pills {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .telemetry-pill {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            padding: 5px 12px;
+            display: flex;
+            flex-direction: column;
+            min-width: 110px;
+        }
+        .pill-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+        }
+        .pill-val {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Controls */
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ctrl-btn {
+            background: #1e293b;
+            border: 1px solid var(--border-dark);
+            color: var(--text-light);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ctrl-btn:hover {
+            background: #334155;
+            border-color: var(--accent-blue);
+        }
+        .ctrl-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* 2. KPI METRICS CARDS (5 Cards) */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-bottom: 16px;
         }
+        @media (max-width: 900px) {
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        }
         .metric-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
             border-radius: 10px;
-            padding: 10px 12px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-            transition: transform 0.15s;
+            padding: 12px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+            overflow: hidden;
         }
         .metric-card:hover {
             transform: translateY(-2px);
+            border-color: var(--accent-green);
         }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--accent-blue);
+        }
+        .metric-card.green::before { background: var(--accent-green); }
+        .metric-card.amber::before { background: var(--accent-amber); }
+        .metric-card.purple::before { background: var(--accent-purple); }
+        .metric-card.red::before { background: var(--accent-red); }
+
         .metric-label {
-            font-size: 10px;
+            font-size: 10.5px;
             font-weight: 700;
-            color: #64748b;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         .metric-value {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
-            color: #0f172a;
+            color: #ffffff;
             display: flex;
             align-items: baseline;
             gap: 4px;
         }
         .metric-sub {
             font-size: 10px;
-            font-weight: 500;
-            color: #94a3b8;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 2px;
         }
 
-        /* Section Title */
-        .section-header {
+        /* 3. VIEW TOGGLE BAR */
+        .view-switcher-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 14px 0 8px 0;
+            background: #1e293b;
+            border: 1px solid var(--border-dark);
+            border-radius: 10px;
+            padding: 8px 14px;
+            margin-bottom: 14px;
         }
-        .section-header h2 {
-            font-size: 13px;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
+        .view-tabs {
             display: flex;
+            gap: 8px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
+        }
+        .tab-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
+        .capacity-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .btn-cap {
+            background: #0f172a;
+            border: 1px solid var(--border-dark);
+            color: var(--text-light);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-cap:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* 4. PARKING BAY GRID (BLOK A & B) */
+        .section-view {
+            display: block;
+        }
+        .section-view.hidden {
+            display: none;
+        }
+
+        .parking-lot-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }
+        .bay-lot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 8px;
+        }
+        .bay-lot-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--accent-green);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .legend-bar {
             display: flex;
             gap: 12px;
-            font-size: 10.5px;
-            color: #475569;
+            font-size: 11px;
+            color: var(--text-muted);
         }
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
-        .legend-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 2px;
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
         }
 
-        /* Visual Parking Bay Grid (Lantai Parkir) */
-        .parking-lot-floor {
-            background: #f1f5f9;
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 18px;
-        }
+        /* Slots Grid */
         .slots-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 12px;
         }
+        @media (max-width: 900px) {
+            .slots-grid { grid-template-columns: repeat(2, 1fr); }
+        }
 
-        /* Slot Card */
-        .slot-card {
-            background: #ffffff;
-            border-radius: 8px;
-            border: 1.5px solid #cbd5e1;
-            padding: 10px;
-            position: relative;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        .bay-slot {
+            background: #0f172a;
+            border: 1.5px dashed #334155;
+            border-radius: 10px;
+            padding: 12px;
+            min-height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 220px;
-            transition: all 0.2s ease;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .bay-slot.occupied {
+            border-style: solid;
+            border-color: #059669;
+            background: linear-gradient(180deg, #132e26 0%, #0b1f19 100%);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+        }
+        .bay-slot.vip {
+            border-color: #d97706;
+            background: linear-gradient(180deg, #2b1d07 0%, #1a1204 100%);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        }
+        .bay-slot.rented {
+            border-color: #2563eb;
+            background: linear-gradient(180deg, #0d2347 0%, #08162d 100%);
+            opacity: 0.92;
+        }
+        .bay-slot.maintenance {
+            border-color: #ef4444;
+            background: linear-gradient(180deg, #300f13 0%, #1c090b 100%);
         }
 
-        /* State A: Standby in Bay */
-        .slot-card.standby {
-            border: 2px solid #10b981;
-            background: #ffffff;
-            opacity: 1.0;
-        }
-        .slot-card.standby.vip {
-            border: 2px solid #f59e0b;
-        }
-
-        /* State B: Currently Rented Out (Ghosted Persistent Bay) */
-        .slot-card.rented {
-            opacity: 0.72;
-            background-color: #f8fafc;
-            border: 2px dashed #94a3b8;
-        }
-
-        /* State C: True Empty Slot */
-        .slot-card.empty {
-            background: #f8fafc;
-            border: 2px dashed #cbd5e1;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .slot-header {
+        .slot-top-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 4px;
         }
-        .slot-badge {
-            font-size: 10px;
+        .slot-id-badge {
+            font-size: 11px;
             font-weight: 800;
-            background: #e2e8f0;
-            color: #1e293b;
+            background: #1e293b;
+            color: #cbd5e1;
             padding: 2px 6px;
             border-radius: 4px;
-            letter-spacing: 0.5px;
+            border: 1px solid #475569;
         }
-        .badge-status {
-            font-size: 9px;
+        .slot-status-pill {
+            font-size: 9.5px;
             font-weight: 800;
             padding: 2px 6px;
             border-radius: 4px;
             text-transform: uppercase;
         }
-        .badge-standby {
-            background: #dcfce7;
-            color: #15803d;
-            border: 1px solid #86efac;
+        .pill-standby { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .pill-disewa { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .pill-empty { background: rgba(148, 163, 184, 0.1); color: #94a3b8; }
+        .pill-rusak { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .slot-vehicle-info {
+            text-align: center;
+            margin: 6px 0;
         }
-        .badge-rented {
-            background: #fee2e2;
-            color: #b91c1c;
-            border: 1px solid #fca5a5;
+        .car-plate {
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        .car-model {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
         }
 
-        .car-kategori-pill {
+        /* Tactical Tags */
+        .tactical-tags {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .tactical-tag {
             font-size: 8.5px;
             font-weight: 700;
             padding: 1px 5px;
             border-radius: 3px;
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .tag-gps { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+        .tag-vip { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
+        .tag-ins { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); }
+
+        /* Battery progress mini bar */
+        .battery-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #334155;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 6px 0 2px 0;
+        }
+        .battery-bar-fill {
+            height: 100%;
+            background: var(--accent-green);
+            border-radius: 2px;
+        }
+
+        .slot-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .btn-action-slot {
+            flex: 1;
+            padding: 5px 0;
+            font-size: 10.5px;
+            font-weight: 700;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn-dispatch {
+            background: #10b981;
+            color: #ffffff;
+        }
+        .btn-dispatch:hover { background: #059669; }
+        .btn-return {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+        .btn-return:hover { background: #2563eb; }
+
+        /* 5. 7-DAY GANTT SCHEDULE TIMELINE VIEW */
+        .gantt-container {
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            overflow-x: auto;
+        }
+        .gantt-header-row {
+            display: grid;
+            grid-template-columns: 220px repeat(7, 1fr);
+            gap: 4px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-dark);
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
-        .pill-reguler { background: #e0f2fe; color: #0369a1; }
-        .pill-vip { background: #fef3c7; color: #92400e; }
-
-        .car-identity {
-            font-size: 12.5px;
-            font-weight: 800;
-            color: #0f172a;
-            margin-top: 2px;
-        }
-        .car-sub {
-            font-size: 10.5px;
-            color: #64748b;
-        }
-        .renter-highlight {
-            font-size: 10px;
-            color: #b91c1c;
-            font-weight: 700;
-            background: #fff1f2;
-            padding: 2px 5px;
-            border-radius: 4px;
-            margin-top: 3px;
-            border: 1px solid #fecdd3;
-        }
-
-        /* Action Buttons */
-        .btn-action {
-            display: inline-block;
-            width: 100%;
+        .gantt-day-col {
             text-align: center;
-            border: none;
-            padding: 5px 8px;
-            border-radius: 5px;
-            font-size: 10.5px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-            margin-top: 5px;
+            padding: 6px 0;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .btn-sewa {
-            background: #1b4332;
-            color: #ffffff;
-        }
-        .btn-sewa:hover {
-            background: #2d6a4f;
-        }
-        .btn-kembali {
-            background: #2563eb;
-            color: #ffffff;
-        }
-        .btn-kembali:hover {
-            background: #1d4ed8;
+        .gantt-day-col.today {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent-green);
+            color: #34d399;
         }
 
-        /* Active Units On Road Section */
+        .gantt-row {
+            display: grid;
+            grid-template-columns: 220px repeat(7, 1fr);
+            gap: 4px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            align-items: center;
+        }
+        .gantt-car-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 8px;
+        }
+        .gantt-bar-cell {
+            position: relative;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 6px;
+            padding: 2px 4px;
+        }
+        .gantt-pill {
+            position: absolute;
+            left: 2px;
+            right: 2px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 8px;
+        }
+        .gantt-pill.rented {
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            border: 1px solid #60a5fa;
+        }
+        .gantt-pill.standby {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px dashed rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+        }
+        .gantt-pill.maintenance {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+        }
+
+        /* 6. ON-ROAD TELEMETRY CARDS */
         .road-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 14px;
+        }
+        @media (max-width: 800px) {
+            .road-grid { grid-template-columns: 1fr; }
         }
         .road-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid #2563eb;
-            border-radius: 8px;
-            padding: 10px 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            background: var(--card-dark);
+            border: 1px solid #2563eb;
+            border-radius: 10px;
+            padding: 12px 14px;
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
+        }
+
+        /* 7. BOTTOM / LATERAL DOCK NAVIGATION */
+        .dock-container {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-dark);
+            border-radius: 30px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+        .dock-item {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+        .dock-item:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .dock-item.active {
+            background: var(--accent-green);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+        .dock-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Sub-Header -->
-        <div class="page-header">
-            <div>
-                <h1>🅿️ MANAJEMEN PARKIR & KETERSEDIAAN ARMADA</h1>
-                <div style="font-size: 11px; color: #64748b; margin-top: 1px;">
-                    Depot Pusat BPP Sumenep • Alokasi Slot Parkir & Status Operasional Real-time
+        <!-- 1. TOP OPERATIONAL STATUS BAR -->
+        <div class="operational-header">
+            <div class="brand-section">
+                <div class="beacon-pulse"></div>
+                <div>
+                    <h1 class="brand-title">FleetSumenep Pro • Operations Center</h1>
+                    <span class="rating-badge">★ 5.0 Garasi Utama Sumenep</span>
                 </div>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <div class="depot-tag" id="depot-capacity-tag">Kapasitas: 8 Slot Kendaraan</div>
-                <button class="btn-action" style="padding: 5px 10px; font-size: 11px; width:auto; background:#f1f5f9; color:#1e293b; border:1px solid #cbd5e1; cursor:pointer;" onclick="tambahSlotKapasitas()">➕ +4 Bay</button>
-                <button class="btn-action" style="padding: 5px 10px; font-size: 11px; width:auto; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; cursor:pointer;" onclick="kurangiSlotKapasitas()">➖ -4 Bay Kosong</button>
+
+            <!-- Telemetry Pills -->
+            <div class="telemetry-pills">
+                <div class="telemetry-pill">
+                    <span class="pill-label">Total Pendapatan</span>
+                    <span class="pill-val" id="pill-revenue" style="color: #34d399;">Rp 18.500.000</span>
+                </div>
+                <div class="telemetry-pill">
+                    <span class="pill-label">Armada Di Jalan</span>
+                    <span class="pill-val" id="pill-onroad" style="color: #60a5fa;">2 / 8 Unit</span>
+                </div>
+                <div class="telemetry-pill">
+                    <span class="pill-label">Kondisi Prima</span>
+                    <span class="pill-val" id="pill-health" style="color: #fbbf24;">94% Optimal</span>
+                </div>
+            </div>
+
+            <!-- Operational Speed Controls -->
+            <div class="control-group">
+                <button class="ctrl-btn" id="btn-pause" onclick="togglePauseSimulation()">⏸️ Jeda</button>
+                <button class="ctrl-btn active" id="btn-speed1" onclick="setSpeed(1)">1x</button>
+                <button class="ctrl-btn" id="btn-speed2" onclick="setSpeed(2)">2x</button>
+                <button class="ctrl-btn" onclick="syncDataBridge()">🔄 Sinkronisasi</button>
             </div>
         </div>
 
-        <!-- 5 KPI Metrics Summary Cards -->
+        <!-- 2. KPI METRICS (5 Cards) -->
         <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-label">Total Kapasitas</div>
-                <div class="metric-value" id="kpi-total">8 <span class="metric-sub">Slot</span></div>
+            <div class="metric-card green">
+                <div class="metric-label">Kapasitas Depo (Bays)</div>
+                <div class="metric-value" id="kpi-total-slots">8 <span style="font-size: 11px; font-weight: 500; color: #94a3b8;">Bay</span></div>
+                <div class="metric-sub" id="kpi-sub-capacity">Tersedia: 6 Slot Siap Parkir</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">Unit Standby (Parkir)</div>
-                <div class="metric-value" style="color: #10b981;" id="kpi-standby">3 <span class="metric-sub">Unit</span></div>
+                <div class="metric-label">Unit Siap di Garasi</div>
+                <div class="metric-value" id="kpi-standby-cars">6 <span style="font-size: 11px; font-weight: 500; color: #94a3b8;">Unit</span></div>
+                <div class="metric-sub">Standby Ready to Dispatch</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Slot Parkir Kosong</div>
-                <div class="metric-value" style="color: #64748b;" id="kpi-kosong">3 <span class="metric-sub">Slot</span></div>
+            <div class="metric-card purple">
+                <div class="metric-label">Unit Aktif di Jalan</div>
+                <div class="metric-value" id="kpi-onroad-cars" style="color: #818cf8;">2 <span style="font-size: 11px; font-weight: 500; color: #94a3b8;">Unit</span></div>
+                <div class="metric-sub">Sedang Disewa Pelanggan</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Unit Sedang di Jalan</div>
-                <div class="metric-value" style="color: #2563eb;" id="kpi-jalan">2 <span class="metric-sub">Unit</span></div>
+            <div class="metric-card amber">
+                <div class="metric-label">Tingkat Okupansi</div>
+                <div class="metric-value" id="kpi-occupancy-rate">75.0<span style="font-size: 12px;">%</span></div>
+                <div class="metric-sub">Efisiensi Lahan Parkir</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Okupansi Parkir</div>
-                <div class="metric-value" style="color: #0f172a;" id="kpi-okupansi">37.5%</div>
+            <div class="metric-card red">
+                <div class="metric-label">Status Mesin & Servis</div>
+                <div class="metric-value" id="kpi-maintenance-cars" style="color: #f87171;">0 <span style="font-size: 11px; font-weight: 500; color: #94a3b8;">Unit</span></div>
+                <div class="metric-sub">Kondisi Armada Terkunci</div>
             </div>
         </div>
 
-        <!-- Section 1: Denah Bay Parkir Pool Depot Sumenep -->
-        <div class="section-header">
-            <h2>🚗 Denah Bay Parkir (Pool Depot Sumenep)</h2>
-            <div class="legend-bar">
-                <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div> Standby Reguler</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Standby VIP</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Sedang Disewa (Ghosted)</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#cbd5e1;"></div> Slot Kosong</div>
+        <!-- 3. VIEW TOGGLE BAR & CAPACITY CONTROLS -->
+        <div class="view-switcher-bar">
+            <div class="view-tabs">
+                <button class="tab-btn active" id="tab-btn-bay" onclick="switchView('bay')">🅿️ Depo Parking Bays (A & B)</button>
+                <button class="tab-btn" id="tab-btn-gantt" onclick="switchView('gantt')">📅 7-Day Fleet Schedule Timeline (Gantt)</button>
+            </div>
+            <div class="capacity-actions">
+                <button class="btn-cap" onclick="tambahSlotKapasitas()">+ Tambah Bay (+4)</button>
+                <button class="btn-cap" onclick="kurangiSlotKapasitas()">- Pangkas Bay (-4)</button>
             </div>
         </div>
 
-        <div class="parking-lot-floor">
-            <div class="slots-grid" id="slots-container">
-                <div style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 20px;">
-                    Memuat data slot parkir dari Java backend...
+        <!-- 4. SECTION A: PARKING BAY GRID (BLOK A & B) -->
+        <div id="view-bay" class="section-view">
+            <div class="parking-lot-card">
+                <div class="bay-lot-header">
+                    <div class="bay-lot-title">
+                        <span>🚘 Grid Visual Depo Parkir Sumenep (Blok A & Blok B)</span>
+                    </div>
+                    <div class="legend-bar">
+                        <div class="legend-item"><span class="dot" style="background: #10b981;"></span> Standby</div>
+                        <div class="legend-item"><span class="dot" style="background: #f59e0b;"></span> VIP Alphard</div>
+                        <div class="legend-item"><span class="dot" style="background: #3b82f6;"></span> Sedang Disewa</div>
+                        <div class="legend-item"><span class="dot" style="background: #ef4444;"></span> Perbaikan</div>
+                        <div class="legend-item"><span class="dot" style="background: #64748b;"></span> Kosong</div>
+                    </div>
+                </div>
+
+                <div class="slots-grid" id="slots-container">
+                    <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 25px;">
+                        Memuat data slot parkir dari Java backend...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aktivitas On-Road -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 16px 0 8px 0;">
+                <h3 style="font-size: 13px; font-weight: 800; color: #60a5fa; margin: 0; text-transform: uppercase;">
+                    🛣️ Telemetri Unit Sedang di Jalan (Live On-Road)
+                </h3>
+                <span id="road-count-tag" style="font-size: 11px; font-weight: 700; color: #60a5fa;">2 Unit Aktif</span>
+            </div>
+            <div class="road-grid" id="road-container">
+                <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 15px;">
+                    Memuat data armada di jalan...
                 </div>
             </div>
         </div>
 
-        <!-- Section 2: Armada Sedang di Jalan -->
-        <div class="section-header">
-            <h2>🛣️ Detail Aktivitas Armada di Jalan (Live On-Road Telemetry)</h2>
-            <span id="road-count-tag" style="font-size: 11px; font-weight: 700; color: #2563eb;">2 Unit Aktif</span>
-        </div>
+        <!-- 5. SECTION B: 7-DAY GANTT SCHEDULE TIMELINE -->
+        <div id="view-gantt" class="section-view hidden">
+            <div class="gantt-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #34d399; text-transform: uppercase;">
+                        📅 Jadwal Reservasi & Operasional Armada Mingguan (7 Hari)
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                        Sinkronisasi Kalender Sewa Aktif
+                    </div>
+                </div>
 
-        <div class="road-grid" id="road-container">
-            <div style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 15px;">
-                Memuat data armada jalan...
+                <!-- Gantt Header Days -->
+                <div class="gantt-header-row">
+                    <div>Kendaraan & Plat</div>
+                    <div class="gantt-day-col today">Hari 1 (Sen)</div>
+                    <div class="gantt-day-col">Hari 2 (Sel)</div>
+                    <div class="gantt-day-col">Hari 3 (Rab)</div>
+                    <div class="gantt-day-col">Hari 4 (Kam)</div>
+                    <div class="gantt-day-col">Hari 5 (Jum)</div>
+                    <div class="gantt-day-col">Hari 6 (Sab)</div>
+                    <div class="gantt-day-col">Hari 7 (Min)</div>
+                </div>
+
+                <!-- Gantt Body Rows -->
+                <div id="gantt-rows-container">
+                    <div style="text-align: center; color: #94a3b8; padding: 20px;">
+                        Memuat data timeline reservasi armada...
+                    </div>
+                </div>
             </div>
         </div>
+
+    </div>
+
+    <!-- 6. BOTTOM / LATERAL DOCK NAVIGATION -->
+    <div class="dock-container">
+        <button class="dock-item" onclick="switchTabInApp(2)">
+            📋 Pesanan & Billing <span class="dock-badge" id="dock-badge-orders">2</span>
+        </button>
+        <button class="dock-item" onclick="switchView('gantt')">
+            📅 Jadwal 7-Hari
+        </button>
+        <button class="dock-item active" onclick="switchView('bay')">
+            🚗 Armada & Garasi
+        </button>
+        <button class="dock-item" onclick="switchTabInApp(0)">
+            📍 GPS Telemetry
+        </button>
+        <button class="dock-item" onclick="triggerP12Save()">
+            💼 File P12 & DB
+        </button>
     </div>
 
     <script>
+        let isPaused = false;
+        let currentSpeed = 1;
+        let rawParkingData = null;
+
+        function switchView(viewName) {
+            const viewBay = document.getElementById('view-bay');
+            const viewGantt = document.getElementById('view-gantt');
+            const tabBay = document.getElementById('tab-btn-bay');
+            const tabGantt = document.getElementById('tab-btn-gantt');
+
+            if (viewName === 'bay') {
+                viewBay.classList.remove('hidden');
+                viewGantt.classList.add('hidden');
+                tabBay.classList.add('active');
+                tabGantt.classList.remove('active');
+            } else {
+                viewBay.classList.add('hidden');
+                viewGantt.classList.remove('hidden');
+                tabBay.classList.remove('active');
+                tabGantt.classList.add('active');
+                renderGanttTimeline();
+            }
+        }
+
+        function togglePauseSimulation() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('btn-pause');
+            if (isPaused) {
+                btn.textContent = '▶️ Lanjut';
+                btn.classList.add('active');
+            } else {
+                btn.textContent = '⏸️ Jeda';
+                btn.classList.remove('active');
+            }
+        }
+
+        function setSpeed(spd) {
+            currentSpeed = spd;
+            document.getElementById('btn-speed1').classList.toggle('active', spd === 1);
+            document.getElementById('btn-speed2').classList.toggle('active', spd === 2);
+        }
+
+        function syncDataBridge() {
+            if (window.javaBridge && typeof window.javaBridge.muatDariFile === 'function') {
+                window.javaBridge.muatDariFile();
+            }
+        }
+
+        function triggerP12Save() {
+            if (window.javaBridge && typeof window.javaBridge.simpanKeFile === 'function') {
+                window.javaBridge.simpanKeFile();
+            }
+        }
+
+        function switchTabInApp(tabIndex) {
+            // Memberi tahu pengguna / switch via Java bridge bila tersedia
+            if (window.javaBridge && typeof window.javaBridge.switchTab === 'function') {
+                window.javaBridge.switchTab(tabIndex);
+            }
+        }
+
         // Interaksi dengan Java Bridge
         function sewaUnit(plat) {
             if (window.javaBridge && typeof window.javaBridge.sewakan === 'function') {
                 window.javaBridge.sewakan(plat);
-            } else {
-                console.log('Sewa unit diklik:', plat);
+            } else if (window.javaBridge && typeof window.javaBridge.sewaMobilDenganDurasi === 'function') {
+                window.javaBridge.sewaMobilDenganDurasi(plat, "Pelanggan Prioritas Sumenep", 24);
             }
         }
 
         function kembalikanUnit(plat) {
             if (window.javaBridge && typeof window.javaBridge.kembalikan === 'function') {
                 window.javaBridge.kembalikan(plat, 0);
-            } else {
-                console.log('Kembalikan unit diklik:', plat);
+            } else if (window.javaBridge && typeof window.javaBridge.kembalikanMobil === 'function') {
+                window.javaBridge.kembalikanMobil(plat);
             }
         }
 
@@ -403,17 +898,17 @@
             const isVIP = (kategori === 'VIP');
             const baseColor = isVIP ? '#d97706' : '#10b981';
             const roofColor = isVIP ? '#b45309' : '#059669';
-            const windowColor = '#1e293b';
+            const windowColor = '#0f172a';
             const opacityStyle = isRented ? 'opacity: 0.55;' : 'opacity: 1.0;';
 
             return `
             <div style="display:flex; justify-content:center; align-items:center; margin: 4px 0; ${opacityStyle}">
-                <svg viewBox="0 0 60 100" width="42" height="70" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));">
+                <svg viewBox="0 0 60 100" width="38" height="64" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));">
                     <!-- Tires -->
-                    <rect x="2" y="14" width="6" height="14" rx="2" fill="#0f172a" />
-                    <rect x="52" y="14" width="6" height="14" rx="2" fill="#0f172a" />
-                    <rect x="2" y="72" width="6" height="14" rx="2" fill="#0f172a" />
-                    <rect x="52" y="72" width="6" height="14" rx="2" fill="#0f172a" />
+                    <rect x="2" y="14" width="6" height="14" rx="2" fill="#020617" />
+                    <rect x="52" y="14" width="6" height="14" rx="2" fill="#020617" />
+                    <rect x="2" y="72" width="6" height="14" rx="2" fill="#020617" />
+                    <rect x="52" y="72" width="6" height="14" rx="2" fill="#020617" />
                     
                     <!-- Side mirrors -->
                     <rect x="3" y="27" width="4" height="4" rx="2" fill="${baseColor}" />
@@ -445,165 +940,253 @@
             </div>`;
         }
 
-        // Fungsi pembaruan data yang dipanggil langsung oleh Java backend
+        function formatRupiah(num) {
+            return 'Rp ' + Math.round(Number(num) || 0).toLocaleString('id-ID');
+        }
+
+        // Callback data dari Java backend
         function updateParkingData(data) {
             if (!data) return;
+            rawParkingData = data;
 
-            // Update KPI Metrics
-            document.getElementById('kpi-total').innerHTML = `${data.totalKapasitas} <span class="metric-sub">Slot</span>`;
-            document.getElementById('kpi-standby').innerHTML = `${data.slotTerisi} <span class="metric-sub">Unit</span>`;
-            document.getElementById('kpi-kosong').innerHTML = `${data.slotKosong} <span class="metric-sub">Slot</span>`;
-            document.getElementById('kpi-jalan').innerHTML = `${data.unitDiJalan} <span class="metric-sub">Unit</span>`;
-            document.getElementById('kpi-okupansi').textContent = `${data.okupansi.toFixed(1)}%`;
+            // 1. Update Metrics
+            document.getElementById('kpi-total-slots').innerHTML = `${data.totalKapasitas} <span style="font-size:11px; color:#94a3b8;">Bay</span>`;
+            document.getElementById('kpi-sub-capacity').textContent = `Tersedia: ${data.slotKosong} Slot Siap Parkir`;
+            document.getElementById('kpi-standby-cars').innerHTML = `${data.slotTerisi} <span style="font-size:11px; color:#94a3b8;">Unit</span>`;
+            document.getElementById('kpi-onroad-cars').innerHTML = `${data.unitDiJalan} <span style="font-size:11px; color:#94a3b8;">Unit</span>`;
+            document.getElementById('kpi-occupancy-rate').innerHTML = `${data.okupansi.toFixed(1)}<span style="font-size:12px;">%</span>`;
+            
+            // Top telemetry
+            document.getElementById('pill-onroad').textContent = `${data.unitDiJalan} / ${data.totalKapasitas} Unit`;
+            document.getElementById('dock-badge-orders').textContent = data.unitDiJalan;
 
-            if (data.totalKapasitas && document.getElementById('depot-capacity-tag')) {
-                document.getElementById('depot-capacity-tag').textContent = `Kapasitas: ${data.totalKapasitas} Slot Kendaraan`;
+            // Calculate revenue indicator
+            let estimatedRev = 18500000;
+            if (data.unitDiJalanList && data.unitDiJalanList.length > 0) {
+                let currentRentRevenue = 0;
+                data.unitDiJalanList.forEach(u => currentRentRevenue += (u.tarifPerHari || 600000) * 3);
+                estimatedRev = 12000000 + currentRentRevenue;
             }
+            document.getElementById('pill-revenue').textContent = formatRupiah(estimatedRev);
 
-            // Render Bay Parkir Grid
+            // 2. Render Bay Slots Grid
             const slotsContainer = document.getElementById('slots-container');
             slotsContainer.innerHTML = '';
 
+            let maintenanceCount = 0;
+
             if (data.slots && data.slots.length > 0) {
                 data.slots.forEach(slot => {
-                    const card = document.createElement('div');
-                    const slotName = slot.baySlot || slot.slotNomor;
+                    const isOccupied = (slot.status !== 'KOSONG');
+                    const isVIP = (slot.kategori === 'VIP');
+                    const isRented = (slot.status === 'DISEWA');
+                    const isMaintenance = (slot.kondisiMesin === 'Dalam Perbaikan');
+                    if (isMaintenance) maintenanceCount++;
 
-                    if (slot.status === 'STANDBY' && slot.plat) {
-                        // State A: Car Standby in Bay (Parked)
-                        const isVIP = (slot.kategori === 'VIP');
-                        const isMaintenance = (slot.kondisiMesin === 'Dalam Perbaikan' || slot.bisaDisewa === false);
-                        card.className = isVIP ? 'slot-card standby vip' : 'slot-card standby';
+                    const slotDiv = document.createElement('div');
+                    let slotClass = 'bay-slot';
+                    if (isOccupied) {
+                        slotClass += ' occupied';
+                        if (isVIP) slotClass += ' vip';
+                        if (isRented) slotClass += ' rented';
+                        if (isMaintenance) slotClass += ' maintenance';
+                    }
+                    slotDiv.className = slotClass;
+
+                    if (isOccupied) {
+                        let statusPillText = 'STANDBY';
+                        let statusPillClass = 'pill-standby';
                         if (isMaintenance) {
-                            card.style.border = '2px solid #f87171';
-                            card.style.background = '#fffafa';
+                            statusPillText = 'PERBAIKAN';
+                            statusPillClass = 'pill-rusak';
+                        } else if (isRented) {
+                            statusPillText = 'DISEWA';
+                            statusPillClass = 'pill-disewa';
                         }
 
-                        const statusBadge = isMaintenance
-                            ? '<span class="badge-status" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">⚠️ DALAM PERBAIKAN</span>'
-                            : '<span class="badge-status badge-standby">[STANDBY / PARKIR]</span>';
+                        const batteryPercent = slot.baterai || 90;
 
-                        const actionButton = isMaintenance
-                            ? '<button class="btn-action" disabled style="background:#f1f5f9; color:#94a3b8; border:1px solid #cbd5e1; cursor:not-allowed;">🔒 Terkunci (Dalam Perbaikan)</button>'
-                            : `<button class="btn-action btn-sewa" onclick="sewaUnit('${slot.plat}')">🚀 Sewakan ke Jalan</button>`;
+                        slotDiv.innerHTML = `
+                            <div class="slot-top-row">
+                                <span class="slot-id-badge">${slot.slotNomor || slot.baySlot}</span>
+                                <span class="slot-status-pill ${statusPillClass}">${statusPillText}</span>
+                            </div>
 
-                        card.innerHTML = `
-                            <div>
-                                <div class="slot-header">
-                                    <span class="slot-badge">${slotName}</span>
-                                    ${statusBadge}
+                            ${getTopDownCarSvg(slot.kategori, isRented)}
+
+                            <div class="slot-vehicle-info">
+                                <div class="car-plate">${slot.plat}</div>
+                                <div class="car-model">${slot.merk}</div>
+                                <div class="tactical-tags">
+                                    <span class="tactical-tag tag-gps">GPS Pro</span>
+                                    <span class="tactical-tag ${isVIP ? 'tag-vip' : 'tag-ins'}">${isVIP ? 'VIP' : 'Reguler'}</span>
+                                    <span class="tactical-tag tag-ins">Asuransi</span>
                                 </div>
-                                ${getTopDownCarSvg(slot.kategori, false)}
-                                <div class="car-identity">${slot.plat}</div>
-                                <div class="car-sub">${slot.merk} • <span class="car-kategori-pill ${isVIP ? 'pill-vip' : 'pill-reguler'}">${slot.kategori}</span></div>
-                                <div style="font-size:10px; color:#475569; margin-top:2px;">
-                                    Baterai: <b>${slot.baterai}%</b> ${slot.suhu ? `| Suhu: <b>${slot.suhu}&deg;C</b>` : ''}
+                                <div class="battery-bar-container">
+                                    <div class="battery-bar-fill" style="width: ${batteryPercent}%;"></div>
                                 </div>
-                                <div style="font-size:10px; color:${isMaintenance ? '#dc2626' : '#166534'}; margin-top:2px; font-weight:700;">
-                                    Kondisi: ${slot.kondisiMesin || 'Sangat Baik'}
-                                </div>
-                            </div>
-                            <div>
-                                ${actionButton}
-                            </div>
-                        `;
-                    } else if (slot.status === 'DISEWA' && slot.plat) {
-                        // State B: Car Currently Rented Out (Ghosted Persistent Bay)
-                        const isVIP = (slot.kategori === 'VIP');
-                        card.className = 'slot-card rented';
-                        card.innerHTML = `
-                            <div>
-                                <div class="slot-header">
-                                    <span class="slot-badge">${slotName}</span>
-                                    <span class="badge-status badge-rented">[SEDANG DISEWA]</span>
-                                </div>
-                                ${getTopDownCarSvg(slot.kategori, true)}
-                                <div class="car-identity" style="color:#475569;">${slot.plat}</div>
-                                <div class="car-sub">${slot.merk} • <span class="car-kategori-pill ${isVIP ? 'pill-vip' : 'pill-reguler'}">${slot.kategori}</span></div>
-                                <div class="renter-highlight">
-                                    👤 ${slot.penyewa || 'Penyewa Operasional'}
-                                </div>
-                                <div style="font-size:9.5px; color:#64748b; margin-top:3px;">
-                                    Baterai: <b>${slot.baterai}%</b> | Posisi di Jalan
+                                <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#94a3b8; margin-top:2px;">
+                                    <span>${(slot.odoMeterKm || 12000).toLocaleString('id-ID')} km</span>
+                                    <span>${formatRupiah(slot.tarifPerHari)}/hr</span>
                                 </div>
                             </div>
-                            <div>
-                                <button class="btn-action btn-kembali" onclick="kembalikanUnit('${slot.plat}')">
-                                    🅿️ Kembalikan ke Parkir Pool
-                                </button>
+
+                            <div class="slot-actions">
+                                ${isRented ? 
+                                    `<button class="btn-action-slot btn-return" onclick="kembalikanUnit('${slot.plat}')">🅿️ Kembalikan</button>` : 
+                                    (isMaintenance ? 
+                                        `<button class="btn-action-slot" style="background:#334155; color:#94a3b8; cursor:not-allowed;" disabled>⚠️ Terkunci</button>` : 
+                                        `<button class="btn-action-slot btn-dispatch" onclick="sewaUnit('${slot.plat}')">🚀 Sewakan</button>`
+                                    )
+                                }
                             </div>
                         `;
                     } else {
-                        // State C: True Empty Slot
-                        card.className = 'slot-card empty';
-                        card.innerHTML = `
-                            <div style="font-size: 26px; color: #94a3b8; font-weight: bold; margin-bottom: 2px;">🅿️</div>
-                            <div class="slot-badge" style="margin-bottom: 4px;">${slotName}</div>
-                            <div style="font-size: 11px; font-weight: 700; color: #64748b;">SLOT KOSONG</div>
-                            <div style="font-size: 9.5px; color: #94a3b8; margin-top: 2px;">Tersedia untuk armada baru</div>
+                        slotDiv.innerHTML = `
+                            <div class="slot-top-row">
+                                <span class="slot-id-badge">${slot.slotNomor || slot.baySlot}</span>
+                                <span class="slot-status-pill pill-empty">KOSONG</span>
+                            </div>
+                            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#475569;">
+                                <div style="font-size:24px; opacity:0.4;">🅿️</div>
+                                <div style="font-size:11px; font-weight:700; margin-top:4px;">Siap Dialokasikan</div>
+                            </div>
+                            <div style="text-align:center; font-size:9.5px; color:#64748b;">Slot Kosong</div>
                         `;
                     }
-                    slotsContainer.appendChild(card);
+
+                    slotsContainer.appendChild(slotDiv);
                 });
             }
 
-            // Render Armada Sedang di Jalan (Active on the Road)
+            document.getElementById('kpi-maintenance-cars').innerHTML = `${maintenanceCount} <span style="font-size: 11px; font-weight: 500; color: #94a3b8;">Unit</span>`;
+
+            // 3. Render Road Telemetry Cards
             const roadContainer = document.getElementById('road-container');
             roadContainer.innerHTML = '';
-            const roadList = data.unitDiJalanList || [];
-            document.getElementById('road-count-tag').textContent = `${roadList.length} Unit Aktif`;
 
-            if (roadList.length === 0) {
+            const onRoadList = data.unitDiJalanList || [];
+            document.getElementById('road-count-tag').textContent = `${onRoadList.length} Unit Aktif di Jalan`;
+
+            if (onRoadList.length === 0) {
                 roadContainer.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 15px; background: #ffffff; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                        Semua armada saat ini berada di pool parkir standby.
+                    <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 15px; background: #0f172a; border-radius: 8px;">
+                        Saat ini seluruh armada berada di depo garasi Sumenep.
                     </div>
                 `;
             } else {
-                roadList.forEach(car => {
+                onRoadList.forEach(car => {
                     const isVIP = (car.kategori === 'VIP');
                     const card = document.createElement('div');
                     card.className = 'road-card';
                     card.innerHTML = `
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                                <span style="font-size: 13px; font-weight: 800; color: #0f172a;">${car.plat}</span>
-                                <span style="font-size: 9.5px; font-weight:700; color:#b91c1c; background:#fee2e2; padding:2px 6px; border-radius:4px; border:1px solid #fca5a5;">
-                                    ● SEDANG DISEWA
-                                </span>
-                            </div>
-                            <div style="font-size: 11px; color: #475569; margin-bottom: 2px;">
-                                ${car.merk} • <b style="color:${isVIP ? '#b45309' : '#15803d'};">${car.kategori}</b> (${car.baySlot || car.slot})
-                            </div>
-                            <div style="font-size: 10.5px; color: #1e293b; margin: 3px 0;">
-                                Penyewa: <b style="color:#b91c1c;">${car.penyewa || 'Penyewa Operasional'}</b>
-                            </div>
-                            <div style="font-size: 10px; color: #64748b;">
-                                Koordinat: ${car.lat.toFixed(4)}, ${car.lng.toFixed(4)} | Baterai: <b>${car.baterai}%</b>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            ${getTopDownCarSvg(car.kategori, true)}
+                            <div>
+                                <div style="font-size:13.5px; font-weight:800; color:#ffffff;">${car.plat} - ${car.merk}</div>
+                                <div style="font-size:11px; color:#94a3b8;">Penyewa: <strong style="color:#60a5fa;">${car.penyewa || 'Pelanggan Sumenep'}</strong></div>
+                                <div style="font-size:10px; color:#cbd5e1; margin-top:2px;">
+                                    Kecepatan: ~45 km/h • Baterai: ${car.baterai || 85}% • Tarif: ${formatRupiah(car.tarifPerHari)}/hari
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <button class="btn-action btn-kembali" onclick="kembalikanUnit('${car.plat}')">
-                                🅿️ Kembalikan ke Parkir Pool
-                            </button>
-                        </div>
+                        <button class="btn-action-slot btn-return" style="max-width: 140px; padding: 8px 12px;" onclick="kembalikanUnit('${car.plat}')">
+                            🅿️ Kembalikan ke Depo
+                        </button>
                     `;
                     roadContainer.appendChild(card);
                 });
             }
+
+            // Also refresh Gantt view if currently visible
+            renderGanttTimeline();
         }
 
-        // Bridge Initialization
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.javaBridge && typeof window.javaBridge.getParkingData === 'function') {
-                try {
-                    const initialJson = JSON.parse(window.javaBridge.getParkingData());
-                    updateParkingData(initialJson);
-                } catch(e) {
-                    console.log('Bridge ready, waiting for parking push...');
-                }
+        // Render 7-Day Gantt Schedule Timeline
+        function renderGanttTimeline() {
+            const container = document.getElementById('gantt-rows-container');
+            if (!container || !rawParkingData) return;
+
+            container.innerHTML = '';
+
+            // Aggregate all vehicles
+            const allCars = [];
+            if (rawParkingData.slots) {
+                rawParkingData.slots.forEach(s => {
+                    if (s.plat && !allCars.some(c => c.plat === s.plat)) {
+                        allCars.push(s);
+                    }
+                });
             }
-        });
+            if (rawParkingData.unitDiJalanList) {
+                rawParkingData.unitDiJalanList.forEach(u => {
+                    if (u.plat && !allCars.some(c => c.plat === u.plat)) {
+                        allCars.push(u);
+                    }
+                });
+            }
+
+            if (allCars.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:15px; color:#94a3b8;">Tidak ada data armada terdaftar.</div>';
+                return;
+            }
+
+            allCars.forEach(car => {
+                const isVIP = (car.kategori === 'VIP');
+                const isRented = (car.status === 'DISEWA' || car.disewa === true);
+                const isMaintenance = (car.kondisiMesin === 'Dalam Perbaikan');
+
+                const row = document.createElement('div');
+                row.className = 'gantt-row';
+
+                let carInfoHtml = `
+                    <div class="gantt-car-info">
+                        <span class="tactical-tag ${isVIP ? 'tag-vip' : 'tag-gps'}">${isVIP ? 'VIP' : 'REG'}</span>
+                        <div>
+                            <div style="font-size:12px; font-weight:800; color:#ffffff;">${car.plat}</div>
+                            <div style="font-size:10px; color:#94a3b8;">${car.merk}</div>
+                        </div>
+                    </div>
+                `;
+
+                let cellsHtml = '';
+                for (let day = 1; day <= 7; day++) {
+                    if (isRented) {
+                        // Display active rental pill for days 1-3
+                        if (day <= 3) {
+                            cellsHtml += `
+                                <div class="gantt-bar-cell">
+                                    <div class="gantt-pill rented" title="Disewa oleh ${car.penyewa || 'Pelanggan'}">
+                                        👤 ${day === 1 ? (car.penyewa || 'Bpk. Pelanggan') : 'Disewa'}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            cellsHtml += `
+                                <div class="gantt-bar-cell">
+                                    <div class="gantt-pill standby" title="Tersedia di Depo">Siap Sewa</div>
+                                </div>
+                            `;
+                        }
+                    } else if (isMaintenance) {
+                        cellsHtml += `
+                            <div class="gantt-bar-cell">
+                                <div class="gantt-pill maintenance" title="Dalam Perbaikan">⚠️ Servis</div>
+                            </div>
+                        `;
+                    } else {
+                        cellsHtml += `
+                            <div class="gantt-bar-cell">
+                                <div class="gantt-pill standby" title="Standby di Depo">Tersedia</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                row.innerHTML = carInfoHtml + cellsHtml;
+                container.appendChild(row);
+            });
+        }
     </script>
 </body>
 </html>

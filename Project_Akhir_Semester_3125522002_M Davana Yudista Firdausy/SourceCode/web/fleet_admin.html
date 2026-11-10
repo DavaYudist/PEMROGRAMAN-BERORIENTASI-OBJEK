@@ -3,99 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetSumenep - Manajemen Armada & Billing Sewa</title>
+    <title>FleetSumenep Pro - Tactical Fleet Operations & Smart Billing Dossier</title>
     <style>
+        :root {
+            --bg-dark: #0b1120;
+            --card-dark: #1e293b;
+            --border-dark: #334155;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
         * { box-sizing: border-box; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             margin: 0; padding: 0; 
-            background: #f8fafc; 
-            color: #1e293b; 
+            background: var(--bg-dark); 
+            color: #f1f5f9; 
             overflow-y: auto;
             min-height: 100vh;
+            padding-bottom: 85px; /* Dock padding */
         }
 
         .container {
-            max-width: 1240px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 16px 20px 40px 20px;
+            padding: 14px 18px;
         }
 
-        /* Header Sub-bar */
-        .page-header {
+        /* 1. TOP OPERATIONAL STATUS BAR */
+        .operational-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
+            padding: 12px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #ffffff;
-            padding: 12px 18px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 14px;
         }
-        .page-header h1 {
-            margin: 0;
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .beacon-pulse {
+            width: 12px;
+            height: 12px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .brand-title {
             font-size: 16px;
             font-weight: 800;
-            color: #1b4332;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+            margin: 0;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .depot-tag {
+        .rating-badge {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
             font-size: 11px;
-            background: #dcfce7;
-            color: #166534;
-            padding: 4px 10px;
-            border-radius: 6px;
             font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* 2-Column Responsive Grid */
+        /* Telemetry Pills */
+        .telemetry-pills {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .telemetry-pill {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            padding: 5px 12px;
+            display: flex;
+            flex-direction: column;
+            min-width: 110px;
+        }
+        .pill-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+        }
+        .pill-val {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Controls */
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ctrl-btn {
+            background: #1e293b;
+            border: 1px solid var(--border-dark);
+            color: var(--text-light);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ctrl-btn:hover {
+            background: #334155;
+            border-color: var(--accent-blue);
+        }
+        .ctrl-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* 2. SUB-BAR ACTIONS & STORAGE CONTROLS */
+        .storage-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 10px;
+            padding: 8px 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .storage-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #94a3b8;
+        }
+        .btn-storage {
+            background: #0f172a;
+            border: 1px solid var(--border-dark);
+            color: #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-storage:hover {
+            border-color: var(--accent-green);
+            color: #34d399;
+        }
+
+        /* Alert Toast */
+        #alert-box {
+            display: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; }
+        .alert-error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; }
+
+        /* 3. 2-COLUMN DASHBOARD GRID */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1.15fr 0.85fr;
             gap: 16px;
             margin-bottom: 20px;
         }
-
         @media (max-width: 980px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
+            .dashboard-grid { grid-template-columns: 1fr; }
         }
 
-        /* Cards */
         .panel-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
             border-radius: 12px;
-            padding: 18px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
         }
-
-        .panel-title {
-            font-size: 14px;
-            font-weight: 800;
-            color: #1b4332;
-            margin-top: 0;
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 10px;
             margin-bottom: 14px;
+        }
+        .panel-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 8px;
+            gap: 8px;
         }
 
-        /* Form Controls */
+        /* Forms */
         .form-group {
             margin-bottom: 12px;
         }
-        .form-group label {
+        .form-label {
             display: block;
             font-size: 11px;
             font-weight: 700;
-            color: #475569;
+            color: var(--text-muted);
             margin-bottom: 4px;
             text-transform: uppercase;
             letter-spacing: 0.4px;
@@ -103,563 +258,550 @@
         .form-control {
             width: 100%;
             padding: 8px 12px;
-            font-size: 12.5px;
-            border: 1px solid #cbd5e1;
+            background: #0f172a;
+            border: 1px solid var(--border-dark);
             border-radius: 6px;
-            background: #ffffff;
-            color: #1e293b;
-            outline: none;
-            transition: border-color 0.15s;
+            color: #ffffff;
+            font-size: 12.5px;
+            font-weight: 600;
+            transition: border-color 0.2s;
         }
         .form-control:focus {
-            border-color: #1b4332;
-            box-shadow: 0 0 0 2px rgba(27,67,50,0.1);
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
 
-        /* Quick Buttons */
-        .duration-buttons {
+        /* Duration Presets */
+        .preset-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            margin-bottom: 10px;
+            margin-top: 6px;
         }
-        .btn-durasi {
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            color: #334155;
-            padding: 6px 8px;
-            border-radius: 6px;
-            font-size: 11px;
+        .preset-btn {
+            background: #0f172a;
+            border: 1px solid var(--border-dark);
+            color: var(--text-muted);
+            font-size: 10.5px;
             font-weight: 700;
+            padding: 5px 0;
+            border-radius: 5px;
             cursor: pointer;
             text-align: center;
-            transition: all 0.15s ease;
+            transition: all 0.2s;
         }
-        .btn-durasi:hover {
-            background: #e2e8f0;
-        }
-        .btn-durasi.active {
-            background: #1b4332;
+        .preset-btn:hover {
+            border-color: var(--accent-blue);
             color: #ffffff;
-            border-color: #1b4332;
+        }
+        .preset-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #ffffff;
         }
 
-        /* Invoice Breakdown */
+        /* Digital Invoice Box */
         .invoice-box {
-            background: #f8fafc;
-            border: 1px dashed #cbd5e1;
+            background: #0f172a;
+            border: 1px solid var(--border-dark);
             border-radius: 8px;
             padding: 12px;
-            margin: 14px 0;
-            font-size: 12px;
+            margin-top: 14px;
         }
         .invoice-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            font-size: 11.5px;
+            color: var(--text-muted);
             margin-bottom: 6px;
-            color: #475569;
         }
-        .invoice-row strong {
-            color: #0f172a;
-        }
-        .invoice-row.prorate {
-            color: #0369a1;
-            font-weight: 600;
-        }
-        .invoice-row.discount {
-            color: #16a34a;
-            font-weight: 600;
-        }
-        .invoice-divider {
-            border-top: 1px solid #e2e8f0;
-            margin: 8px 0;
-        }
-        .invoice-total {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
+        .invoice-row.total {
+            border-top: 1px solid var(--border-dark);
+            padding-top: 8px;
+            margin-top: 8px;
             font-size: 14px;
             font-weight: 800;
-            color: #1b4332;
-        }
-        .invoice-total .amount {
-            font-size: 18px;
-            color: #1b4332;
+            color: #34d399;
         }
 
         /* Action Buttons */
         .btn-primary {
             width: 100%;
-            background: #1b4332;
-            color: #ffffff;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             border: none;
-            padding: 10px 16px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 12.5px;
-            font-weight: 700;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.15s ease;
-        }
-        .btn-primary:hover {
-            background: #2d6a4f;
-        }
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #1e293b;
-            border: 1px solid #cbd5e1;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .btn-secondary:hover {
-            background: #e2e8f0;
-        }
-        .btn-danger-outline {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .btn-danger-outline:hover {
-            background: #fee2e2;
-        }
-
-        /* Notification Toast */
-        #alert-box {
-            display: none;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 11.5px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        #alert-box.success {
-            display: block;
-            background: #dcfce7;
-            color: #15803d;
-            border: 1px solid #86efac;
-        }
-        #alert-box.error {
-            display: block;
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        /* Dossier Fleet Cards */
-        .dossier-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
-            gap: 14px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: all 0.2s;
             margin-top: 10px;
         }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+        }
+
+        /* 4. TACTICAL FLEET DOSSIER CARDS */
+        .dossier-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 14px;
+        }
+        @media (max-width: 1100px) {
+            .dossier-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 650px) {
+            .dossier-grid { grid-template-columns: 1fr; }
+        }
+
         .dossier-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
             padding: 14px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.15s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+            overflow: hidden;
         }
         .dossier-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);
+            border-color: var(--accent-green);
         }
         .dossier-card.vip {
-            border-top: 4px solid #d97706;
-        }
-        .dossier-card.reguler {
-            border-top: 4px solid #2d6a4f;
+            border-color: rgba(245, 158, 11, 0.4);
         }
         .dossier-card.maintenance {
-            border-top: 4px solid #ef4444 !important;
-            background: #fffafa;
+            border-color: rgba(239, 68, 68, 0.4);
         }
+
         .dossier-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 8px;
             margin-bottom: 10px;
         }
-        .car-badge-vip {
-            background: #fef3c7;
-            color: #b45309;
-            font-size: 9.5px;
+        .dossier-plate {
+            font-size: 14px;
             font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .car-badge-reguler {
-            background: #dcfce7;
-            color: #15803d;
-            font-size: 9.5px;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
+            color: #ffffff;
         }
         .status-pill {
             font-size: 9.5px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 9999px;
-        }
-        .status-pill.standby {
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #86efac;
-        }
-        .status-pill.disewa {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-        .status-pill.maintenance {
-            background: #fef2f2;
-            color: #b91c1c;
-            border: 1px solid #f87171;
             font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
         }
+        .status-pill.standby { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .status-pill.disewa { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .status-pill.maintenance { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
         .dossier-body {
             font-size: 11.5px;
-            color: #475569;
-            margin-bottom: 12px;
+            color: var(--text-muted);
         }
-        .dossier-body .spec-row {
+        .spec-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 4px;
         }
-        .dossier-body strong {
-            color: #1e293b;
+        .spec-row strong {
+            color: #ffffff;
         }
-        .physical-notes {
-            background: #f8fafc;
-            padding: 6px 8px;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
-            font-size: 10.5px;
-            color: #334155;
-            margin-top: 8px;
+
+        /* Mini Battery Bar */
+        .battery-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #334155;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 6px 0 2px 0;
         }
+        .battery-bar-fill {
+            height: 100%;
+            background: var(--accent-green);
+            border-radius: 2px;
+        }
+
+        /* Tactical Tags */
+        .tactical-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin: 6px 0;
+        }
+        .tactical-tag {
+            font-size: 8.5px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .tag-gps { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+        .tag-vip { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
+        .tag-ins { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); }
 
         .dossier-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            display: flex;
+            gap: 6px;
             margin-top: 10px;
+            border-top: 1px solid var(--border-dark);
+            padding-top: 8px;
         }
-        .btn-edit {
-            background: #f0fdf4;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-            padding: 5px 8px;
-            border-radius: 6px;
-            font-size: 11px;
+        .btn-card-act {
+            flex: 1;
+            padding: 5px 0;
+            font-size: 10px;
             font-weight: 700;
+            border-radius: 5px;
+            border: 1px solid var(--border-dark);
+            background: #0f172a;
+            color: #e2e8f0;
             cursor: pointer;
+            transition: all 0.2s;
             text-align: center;
-            transition: all 0.15s ease;
         }
-        .btn-edit:hover {
-            background: #dcfce7;
-        }
-        .btn-delete {
-            background: #fff1f2;
-            color: #e11d48;
-            border: 1px solid #fecdd3;
-            padding: 5px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.15s ease;
-        }
-        .btn-delete:hover:not(:disabled) {
-            background: #e11d48;
+        .btn-card-act:hover {
+            border-color: var(--accent-blue);
             color: #ffffff;
-            border-color: #e11d48;
         }
-        .btn-delete:disabled {
-            background: #f1f5f9;
-            color: #94a3b8;
-            border-color: #e2e8f0;
-            cursor: not-allowed;
+        .btn-card-act.dispatch {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #34d399;
+        }
+        .btn-card-act.return {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #60a5fa;
         }
 
-        /* Modal Edit */
+        /* 5. MODAL EDIT */
         #edit-modal-backdrop {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(2px);
-            z-index: 9999;
-            align-items: center;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
             justify-content: center;
-        }
-        #edit-modal-backdrop.show {
-            display: flex;
+            align-items: center;
         }
         .edit-modal-card {
-            background: #ffffff;
-            width: 90%;
-            max-width: 480px;
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
             border-radius: 12px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
             padding: 20px;
+            width: 440px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* 6. BOTTOM / LATERAL DOCK NAVIGATION */
+        .dock-container {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-dark);
+            border-radius: 30px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+        .dock-item {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dock-item:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .dock-item.active {
+            background: var(--accent-green);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+        .dock-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1>💼 Manajemen Armada, Kondisi Unit & Billing Sewa</h1>
-                <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">
-                    Tarif Harian (Base 24 Jam) &bull; Prorata Sejam &bull; Kunci Sewa Rusak &bull; Manajemen Bay Pool Dinamis
+        <!-- 1. TOP OPERATIONAL STATUS BAR -->
+        <div class="operational-header">
+            <div class="brand-section">
+                <div class="beacon-pulse"></div>
+                <div>
+                    <h1 class="brand-title">FleetSumenep Pro • Operations Center</h1>
+                    <span class="rating-badge">★ 5.0 Garasi Utama Sumenep</span>
                 </div>
             </div>
-            <div style="display:flex; align-items:center; gap: 8px; flex-wrap: wrap;">
-                <button class="btn-secondary" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; font-weight:700;" onclick="simpanKeFileP12()">💾 Simpan Data ke File (P12)</button>
-                <button class="btn-secondary" style="background:#eff6ff; border-color:#bfdbfe; color:#1e40af; font-weight:700;" onclick="muatDariFileP12()">📂 Muat Ulang dari File (P12)</button>
-                <span class="depot-tag" id="depot-slot-tag">Kapasitas Pool: 8 Bay</span>
-                <button class="btn-secondary" onclick="tambahSlotKapasitas()">➕ Tambah Kapasitas (+4 Bay)</button>
-                <button class="btn-danger-outline" onclick="kurangiSlotKapasitas()">➖ Kurangi Bay Kosong (-4)</button>
+
+            <!-- Telemetry Pills -->
+            <div class="telemetry-pills">
+                <div class="telemetry-pill">
+                    <span class="pill-label">Total Pendapatan</span>
+                    <span class="pill-val" id="pill-revenue" style="color: #34d399;">Rp 18.500.000</span>
+                </div>
+                <div class="telemetry-pill">
+                    <span class="pill-label">Armada Di Jalan</span>
+                    <span class="pill-val" id="pill-onroad" style="color: #60a5fa;">2 / 8 Unit</span>
+                </div>
+                <div class="telemetry-pill">
+                    <span class="pill-label">Kondisi Prima</span>
+                    <span class="pill-val" id="pill-health" style="color: #fbbf24;">94% Optimal</span>
+                </div>
+            </div>
+
+            <!-- Operational Controls -->
+            <div class="control-group">
+                <button class="ctrl-btn" id="btn-pause" onclick="togglePause()">⏸️ Jeda</button>
+                <button class="ctrl-btn active" id="btn-speed1" onclick="setSpeed(1)">1x</button>
+                <button class="ctrl-btn" id="btn-speed2" onclick="setSpeed(2)">2x</button>
+                <button class="ctrl-btn" onclick="muatDariFileP12()">🔄 Sinkronisasi</button>
             </div>
         </div>
 
+        <!-- 2. STORAGE CONTROLS & STATUS -->
+        <div class="storage-bar">
+            <div class="storage-status">
+                <span style="color: #34d399;">●</span>
+                <span>Storage Dual-Engine: <strong>MySQL Active / Flat-File Fallback (P12)</strong></span>
+                <span id="depot-slot-tag" style="background:#0f172a; padding:2px 8px; border-radius:4px; border:1px solid #334155;">Kapasitas: 8 Bay</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+                <button class="btn-storage" onclick="simpanKeFileP12()">💾 Simpan Data ke File (P12)</button>
+                <button class="btn-storage" onclick="muatDariFileP12()">📂 Muat Ulang dari File (P12)</button>
+                <button class="btn-storage" onclick="tambahSlotKapasitas()">+ Bay</button>
+                <button class="btn-storage" onclick="kurangiSlotKapasitas()">- Bay</button>
+            </div>
+        </div>
+
+        <!-- Alert Toast -->
         <div id="alert-box"></div>
 
-        <!-- Upper Grid: Section A & Section C -->
+        <!-- 3. DASHBOARD 2-COLUMN GRID -->
         <div class="dashboard-grid">
-            
-            <!-- SECTION A: BILLING CALCULATOR & RENTAL SIMULATION -->
+            <!-- PANEL A: FAST DISPATCH & INVOICE -->
             <div class="panel-card">
-                <div class="panel-title">
-                    <span>🧾 Section A: Kalkulator Billing & Simulasi Peluncuran Sewa</span>
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <button class="btn-secondary" style="font-size:10.5px; padding:3px 8px; background:#ecfdf5; border-color:#a7f3d0; color:#065f46; font-weight:700;" onclick="simpanKeFileP12()" title="Simpan data armada aktif ke data/armada_store.txt">💾 Simpan Data ke File (P12)</button>
-                        <button class="btn-secondary" style="font-size:10.5px; padding:3px 8px; background:#eff6ff; border-color:#bfdbfe; color:#1e40af; font-weight:700;" onclick="muatDariFileP12()" title="Muat ulang data armada dari data/armada_store.txt">📂 Muat Ulang dari File (P12)</button>
-                        <span style="font-size: 11px; font-weight: normal; color: #64748b;">Daily Base (24 Jam) + Prorata</span>
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>🚀 Antrian Persetujuan & Fast Dispatch Sewa</span>
                     </div>
+                    <span style="font-size:11px; color:#94a3b8;">OOP P6 Billing Engine</span>
                 </div>
 
                 <div class="form-group">
-                    <label>Pilih Unit Kendaraan (Standby & Siap Operasi):</label>
-                    <select id="select-kendaraan" class="form-control" onchange="hitungInvoiceLive()">
-                        <option value="">-- Pilih Kendaraan Tersedia --</option>
+                    <label class="form-label">Pilih Kendaraan Standby:</label>
+                    <select id="select-kendaraan" class="form-control" onchange="autoFillTarif()">
+                        <option value="">-- Memuat armada... --</option>
                     </select>
                 </div>
 
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nama Penyewa:</label>
+                        <input type="text" id="penyewa-nama" class="form-control" placeholder="Contoh: Bpk. Achmad Sumenep" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Durasi Hari (24 Jam):</label>
+                        <input type="number" id="durasi-hari" class="form-control" value="1" min="0" max="30" oninput="syncFromHari()" />
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label>Durasi Sewa Paket:</label>
-                    <div class="duration-buttons">
-                        <button type="button" class="btn-durasi" id="btn-preset-4" onclick="setPresetDurasi(4)">4 Jam</button>
-                        <button type="button" class="btn-durasi" id="btn-preset-12" onclick="setPresetDurasi(12)">12 Jam</button>
-                        <button type="button" class="btn-durasi active" id="btn-preset-24" onclick="setPresetDurasi(24)">24 Jam (1 H)</button>
-                        <button type="button" class="btn-durasi" id="btn-preset-48" onclick="setPresetDurasi(48)">48 Jam (2 H)</button>
+                    <label class="form-label">Durasi Total Jam (Prorata P6):</label>
+                    <input type="number" id="durasi-jam" class="form-control" value="24" min="1" max="720" oninput="syncFromJam()" />
+                    
+                    <div class="preset-grid">
+                        <button class="preset-btn" onclick="setPresetDurasi(6)">6 Jam</button>
+                        <button class="preset-btn" onclick="setPresetDurasi(12)">12 Jam</button>
+                        <button class="preset-btn active" id="preset-24" onclick="setPresetDurasi(24)">1 Hari (24 Jam)</button>
+                        <button class="preset-btn" onclick="setPresetDurasi(72)">3 Hari (72 Jam)</button>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 mt-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" style="display:block; font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px; text-transform:uppercase;">Durasi Sewa (Hari):</label>
-                            <div class="relative" style="position:relative;">
-                                <input type="number" id="input-hari" min="0" step="0.5" value="1" 
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 form-control" 
-                                       placeholder="Contoh: 1, 2, 3..." oninput="syncFromHari()">
-                                <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-medium" style="position:absolute; right:12px; top:8px; font-size:11px; color:#94a3b8; font-weight:600;">Hari</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" style="display:block; font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px; text-transform:uppercase;">Konversi Operasional (Jam):</label>
-                            <div class="relative" style="position:relative;">
-                                <input type="number" id="input-jam" min="1" step="1" value="24" 
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 form-control" 
-                                       placeholder="Contoh: 24" oninput="syncFromJam()">
-                                <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-medium" style="position:absolute; right:12px; top:8px; font-size:11px; color:#94a3b8; font-weight:600;">Jam</span>
-                            </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 10px;">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;">
+                        <input type="checkbox" id="sopir-check" onchange="hitungInvoiceLive()" />
+                        <span>Dengan Supir (+Rp 150rb/hari)</span>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;">
+                        <input type="checkbox" id="diskon-check" onchange="toggleDiskonInput()" />
+                        <span>Voucher Diskon (%)</span>
+                    </label>
+                </div>
+
+                <div id="diskon-box" style="display:none; margin-top:10px;">
+                    <div class="form-row">
+                        <input type="number" id="diskon-input" class="form-control" placeholder="Diskon % (misal 15)" min="0" max="50" oninput="hitungInvoiceLive()" />
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="voucher-code" class="form-control" placeholder="Kode Promo" />
+                            <button class="btn-storage" id="btn-apply-voucher" onclick="applyPromoVoucher()">Apply</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Konfigurasi Layanan Pengemudi & Kebijakan Diskon Admin -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Layanan Pengemudi (Supir):</label>
-                        <select id="select-layanan-supir" class="form-control" onchange="kalkulasiInvoice()">
-                            <option value="false">🚗 Lepas Kunci (Tanpa Supir) - Lebih Hemat</option>
-                            <option value="true" selected>👨‍✈️ Dengan Supir & Layanan VIP / Reguler</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <label style="margin-bottom:0;">Kebijakan Diskon Admin:</label>
-                            <label style="font-size:10.5px; text-transform:none; font-weight:normal; cursor:pointer; color:#1b4332;">
-                                <input type="checkbox" id="check-diskon" onchange="toggleDiskonInput()"> Berikan Diskon Khusus
-                            </label>
-                        </div>
-                        <div style="position:relative;">
-                            <input type="number" id="input-diskon" class="form-control" min="0" max="100" step="1" value="0" disabled placeholder="0" oninput="kalkulasiInvoice()" style="padding-right: 32px;" />
-                            <span style="position:absolute; right:12px; top:8px; font-size:11.5px; color:#94a3b8; font-weight:bold;">%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="form-group">
-                        <label>Nama Penyewa:</label>
-                        <input type="text" id="input-penyewa" class="form-control" placeholder="Contoh: Budi Santoso" value="Ahmad Santoso (Dinas PU Sumenep)" />
-                    </div>
-                    <div class="form-group">
-                        <label>No. HP / WhatsApp:</label>
-                        <input type="text" id="input-hp" class="form-control" placeholder="0812-XXXX-XXXX" value="081234567890" />
-                    </div>
-                </div>
-
-                <!-- Dynamic Live Invoice Breakdown -->
+                <!-- Digital Invoice -->
                 <div class="invoice-box">
                     <div class="invoice-row">
-                        <span>Tarif Harian Dasar (24 Jam):</span>
-                        <strong id="inv-tarif-harian">Rp 0</strong>
-                    </div>
-                    <div class="invoice-row prorate">
-                        <span>Perhitungan Prorata Sejam (Tarif Harian / 24):</span>
-                        <strong id="inv-prorata-jam">Rp 0 / jam</strong>
+                        <span>Biaya Sewa Pokok:</span>
+                        <strong id="invoice-subtotal">Rp 600.000</strong>
                     </div>
                     <div class="invoice-row">
-                        <span>Subtotal Durasi (<span id="inv-durasi-label">24</span> Jam):</span>
-                        <strong id="inv-subtotal">Rp 0</strong>
+                        <span>Layanan Supir Profesional:</span>
+                        <strong id="invoice-sopir">Rp 0</strong>
                     </div>
                     <div class="invoice-row">
-                        <span>Layanan Supir / Chauffeur:</span>
-                        <strong id="inv-vip-fee">Rp 0</strong>
+                        <span>Potongan Diskon Promo:</span>
+                        <strong id="invoice-diskon" style="color: #f87171;">Rp 0</strong>
                     </div>
-                    <div class="invoice-row discount">
-                        <span>Potongan Diskon Admin:</span>
-                        <strong id="inv-diskon">- Rp 0</strong>
-                    </div>
-                    <div class="invoice-divider"></div>
-                    <div class="invoice-total">
-                        <span>TOTAL TAGIHAN BERSIH:</span>
-                        <span class="amount" id="inv-total">Rp 0</span>
+                    <div class="invoice-row total">
+                        <span>ESTIMASI TOTAL BILLING:</span>
+                        <strong id="invoice-total">Rp 600.000</strong>
                     </div>
                 </div>
 
-                <button class="btn-primary" id="btn-submit-sewa" onclick="konfirmasiSewaDanLuncurkan()">
-                    🚀 Konfirmasi Sewa & Luncurkan ke Peta
+                <button class="btn-primary" onclick="konfirmasiSewaDanLuncurkan()">
+                    🚀 Konfirmasi Sewa & Luncurkan ke Jalan
                 </button>
             </div>
 
-            <!-- SECTION C: ADD NEW VEHICLE -->
+            <!-- PANEL B: REGISTRASI ARMADA BARU -->
             <div class="panel-card">
-                <div class="panel-title">
-                    <span>➕ Section C: Registrasi Unit Armada Baru</span>
-                    <span style="font-size: 11px; font-weight: normal; color: #64748b;">Dynamic Slot Bay</span>
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>🚗 Registrasi Armada Baru ke Garasi</span>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8;">Polimorfik P5/P7</span>
                 </div>
 
-                <div class="form-group">
-                    <label>Nomor Polisi (Plat):</label>
-                    <input type="text" id="new-plat" class="form-control" placeholder="Contoh: M 4567 CD" />
-                </div>
-
-                <div class="form-group">
-                    <label>Merk & Tipe Kendaraan:</label>
-                    <input type="text" id="new-merk" class="form-control" placeholder="Contoh: Mitsubishi Xpander Ultimate" />
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Kategori Unit:</label>
-                        <select id="new-kategori" class="form-control" onchange="autoFillTarif()">
-                            <option value="Reguler">Reguler</option>
-                            <option value="VIP">VIP</option>
+                        <label class="form-label">Plat Nomor (Immutable):</label>
+                        <input type="text" id="new-plat" class="form-control" placeholder="Contoh: M 7788 SM" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Merk / Model Kendaraan:</label>
+                        <input type="text" id="new-merk" class="form-control" placeholder="Contoh: Mitsubishi Xpander" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Kategori Armada:</label>
+                        <select id="new-tipe" class="form-control">
+                            <option value="REGULER">Mobil Reguler (Ekonomis)</option>
+                            <option value="VIP">Mobil VIP (Alphard Luxury)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Tarif Sewa Harian (IDR / 24 Jam):</label>
-                        <input type="number" id="new-tarif" class="form-control" value="650000" step="25000" />
+                        <label class="form-label">Tarif Harian (IDR):</label>
+                        <input type="number" id="new-tarif" class="form-control" value="600000" step="50000" />
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Odometer (Km):</label>
+                        <label class="form-label">Odometer Awal (Km):</label>
                         <input type="number" id="new-odo" class="form-control" value="15000" />
                     </div>
                     <div class="form-group">
-                        <label>Kondisi Mesin:</label>
+                        <label class="form-label">Kondisi Mesin:</label>
                         <select id="new-kondisi" class="form-control">
-                            <option value="Sangat Baik">Sangat Baik</option>
+                            <option value="Sangat Baik">Sangat Baik (Prima)</option>
                             <option value="Baik">Baik</option>
-                            <option value="Perlu Servis">Perlu Servis</option>
-                            <option value="Dalam Perbaikan">Dalam Perbaikan (Terkunci)</option>
+                            <option value="Dalam Perbaikan">Dalam Perbaikan (Kunci)</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Catatan Fisik Kendaraan:</label>
-                    <input type="text" id="new-catatan" class="form-control" value="Bodi mulus, interior bersih, AC sangat dingin" />
+                    <label class="form-label">Catatan Fisik / Fasilitas:</label>
+                    <textarea id="new-catatan" class="form-control" rows="2" placeholder="Bodi mulus, AC double blower, GPS Pro terpasang..."></textarea>
                 </div>
 
-                <button class="btn-primary" style="background:#2d6a4f;" onclick="tambahArmadaBaru()">
-                    📥 Tambah Unit Baru ke Parkiran Pool
+                <button class="btn-primary" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);" onclick="tambahArmadaBaru()">
+                    + Daftarkan Unit ke Database & Bay Garasi
                 </button>
             </div>
         </div>
 
-        <!-- SECTION B: VEHICLE CONDITION & INSPECTION DOSSIER -->
-        <div class="panel-card">
-            <div class="panel-title">
-                <span>📋 Section B: Dossier & Kondisi Fisik Seluruh Armada</span>
-                <span id="dossier-count" style="font-size: 11px; font-weight: bold; color: #2d6a4f;">5 Unit Terdaftar</span>
-            </div>
-
-            <div class="dossier-grid" id="dossier-container">
-                <!-- Cards rendered dynamically -->
-            </div>
+        <!-- 4. TACTICAL FLEET DOSSIER CARDS -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0;">
+            <h2 style="font-size: 14px; font-weight: 800; color: #34d399; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Dossier & Katalog Armada Terdaftar (Tactical Vehicle Fleet)
+            </h2>
+            <span id="dossier-count" style="font-size: 11.5px; font-weight: 700; color: #94a3b8;">Memuat data...</span>
         </div>
+
+        <div class="dossier-grid" id="dossier-container">
+            <!-- Rendered by JS -->
+        </div>
+
     </div>
 
-    <!-- MODAL EDIT KENDARAAN -->
+    <!-- 5. MODAL EDIT KENDARAAN -->
     <div id="edit-modal-backdrop">
         <div class="edit-modal-card">
-            <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 15px; color: #1b4332;">✏️ Edit Data & Kondisi Kendaraan</h3>
+            <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 15px; color: #34d399;">✏️ Edit Data & Kondisi Kendaraan</h3>
             
             <div class="form-group">
-                <label>Plat Nomor & Merk:</label>
-                <input type="text" id="edit-plat" class="form-control" readonly style="background:#f1f5f9; font-weight:bold;" />
+                <label class="form-label">Plat Nomor (Immutable):</label>
+                <input type="text" id="edit-plat" class="form-control" readonly style="background:#0f172a; color:#94a3b8;" />
             </div>
 
             <div class="form-group">
-                <label>Tarif Sewa Harian (IDR / 24 Jam):</label>
+                <label class="form-label">Tarif Sewa Harian (IDR / 24 Jam):</label>
                 <input type="number" id="edit-tarif" class="form-control" step="25000" />
             </div>
 
             <div class="form-group">
-                <label>Status Kondisi Mesin:</label>
+                <label class="form-label">Status Kondisi Mesin:</label>
                 <select id="edit-kondisi" class="form-control">
-                    <option value="Sangat Baik">Sangat Baik</option>
+                    <option value="Sangat Baik">Sangat Baik (Prima)</option>
                     <option value="Baik">Baik</option>
                     <option value="Perlu Servis">Perlu Servis</option>
                     <option value="Dalam Perbaikan">Dalam Perbaikan (Kunci Sewa)</option>
@@ -667,30 +809,57 @@
             </div>
 
             <div class="form-group">
-                <label>Catatan Fisik / Riwayat Servis:</label>
+                <label class="form-label">Catatan Fisik / Riwayat Servis:</label>
                 <textarea id="edit-catatan" class="form-control" rows="3"></textarea>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
-                <button class="btn-secondary" onclick="closeEditModal()">Batal</button>
-                <button class="btn-primary" style="width: auto; padding: 8px 16px;" onclick="submitEditKendaraan()">💾 Simpan Perubahan</button>
+                <button class="btn-storage" onclick="closeEditModal()">Batal</button>
+                <button class="btn-primary" style="width: auto; padding: 6px 16px; margin-top:0;" onclick="submitEditKendaraan()">💾 Simpan Perubahan</button>
             </div>
         </div>
+    </div>
+
+    <!-- 6. BOTTOM / LATERAL DOCK NAVIGATION -->
+    <div class="dock-container">
+        <button class="dock-item active">
+            📋 Pesanan & Billing <span class="dock-badge" id="dock-badge-orders">2</span>
+        </button>
+        <button class="dock-item" onclick="switchTabInApp(1)">
+            📅 Jadwal 7-Hari
+        </button>
+        <button class="dock-item" onclick="switchTabInApp(1)">
+            🚗 Armada & Garasi
+        </button>
+        <button class="dock-item" onclick="switchTabInApp(0)">
+            📍 GPS Telemetry
+        </button>
+        <button class="dock-item" onclick="simpanKeFileP12()">
+            💼 File P12 & DB
+        </button>
     </div>
 
     <script>
         let fleetData = [];
         let parkingData = null;
+        let isPaused = false;
 
-        // Top-down SVG vector rendering for vehicle card header
-        function getCarVectorSvg(kategori) {
-            const color = (kategori === 'VIP') ? '#d97706' : '#2d6a4f';
-            return `
-            <svg viewBox="0 0 24 24" width="36" height="36" fill="${color}" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z"/>
-                <circle cx="7.5" cy="14.5" r="1.5" fill="#ffffff"/>
-                <circle cx="16.5" cy="14.5" r="1.5" fill="#ffffff"/>
-            </svg>`;
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('btn-pause');
+            btn.textContent = isPaused ? '▶️ Lanjut' : '⏸️ Jeda';
+            btn.classList.toggle('active', isPaused);
+        }
+
+        function setSpeed(spd) {
+            document.getElementById('btn-speed1').classList.toggle('active', spd === 1);
+            document.getElementById('btn-speed2').classList.toggle('active', spd === 2);
+        }
+
+        function switchTabInApp(tabIndex) {
+            if (window.javaBridge && typeof window.javaBridge.switchTab === 'function') {
+                window.javaBridge.switchTab(tabIndex);
+            }
         }
 
         function formatRupiah(num) {
@@ -699,338 +868,200 @@
 
         function showAlert(msg, isSuccess) {
             const box = document.getElementById('alert-box');
-            box.className = isSuccess ? 'success' : 'error';
             box.textContent = msg;
-            setTimeout(() => {
-                box.className = '';
-            }, 6000);
+            box.className = isSuccess ? 'alert-success' : 'alert-error';
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 4000);
         }
 
         function autoFillTarif() {
-            const cat = document.getElementById('new-kategori').value;
-            if (cat === 'VIP') {
-                document.getElementById('new-tarif').value = 2400000;
-            } else {
-                document.getElementById('new-tarif').value = 650000;
-            }
+            hitungInvoiceLive();
         }
 
         function syncFromHari() {
-            const inputHari = document.getElementById('input-hari');
-            const inputJam = document.getElementById('input-jam');
-            const jam = Math.round(parseFloat(inputHari.value || 0) * 24);
-            inputJam.value = jam;
+            const hari = parseInt(document.getElementById('durasi-hari').value) || 0;
+            const jam = hari * 24;
+            document.getElementById('durasi-jam').value = jam;
             updatePresetActiveState(jam);
-            kalkulasiInvoice();
+            hitungInvoiceLive();
         }
 
         function syncFromJam() {
-            const inputHari = document.getElementById('input-hari');
-            const inputJam = document.getElementById('input-jam');
-            const jamVal = parseFloat(inputJam.value || 0);
-            const hari = parseFloat((jamVal / 24).toFixed(2));
-            inputHari.value = hari;
-            updatePresetActiveState(jamVal);
-            kalkulasiInvoice();
+            const jam = parseInt(document.getElementById('durasi-jam').value) || 0;
+            const hari = (jam / 24).toFixed(1);
+            document.getElementById('durasi-hari').value = (jam % 24 === 0) ? Math.floor(jam / 24) : hari;
+            updatePresetActiveState(jam);
+            hitungInvoiceLive();
         }
 
         function updatePresetActiveState(jam) {
-            document.querySelectorAll('.btn-durasi').forEach(btn => btn.classList.remove('active'));
-            if (jam === 4) {
-                const b = document.getElementById('btn-preset-4');
-                if (b) b.classList.add('active');
-            } else if (jam === 12) {
-                const b = document.getElementById('btn-preset-12');
-                if (b) b.classList.add('active');
-            } else if (jam === 24) {
-                const b = document.getElementById('btn-preset-24');
-                if (b) b.classList.add('active');
-            } else if (jam === 48) {
-                const b = document.getElementById('btn-preset-48');
-                if (b) b.classList.add('active');
-            }
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            if (jam === 6) document.querySelector('.preset-grid button:nth-child(1)').classList.add('active');
+            else if (jam === 12) document.querySelector('.preset-grid button:nth-child(2)').classList.add('active');
+            else if (jam === 24) document.querySelector('.preset-grid button:nth-child(3)').classList.add('active');
+            else if (jam === 72) document.querySelector('.preset-grid button:nth-child(4)').classList.add('active');
         }
 
-        function setPresetDurasi(presetJam) {
-            const inputHari = document.getElementById('input-hari');
-            const inputJam = document.getElementById('input-jam');
-            if (presetJam === 4) {
-                inputJam.value = 4;
-                inputHari.value = 0.17;
-            } else if (presetJam === 12) {
-                inputJam.value = 12;
-                inputHari.value = 0.5;
-            } else if (presetJam === 24) {
-                inputJam.value = 24;
-                inputHari.value = 1;
-            } else if (presetJam === 48) {
-                inputJam.value = 48;
-                inputHari.value = 2;
-            } else {
-                inputJam.value = presetJam;
-                inputHari.value = parseFloat((presetJam / 24).toFixed(2));
-            }
-            updatePresetActiveState(presetJam);
-            kalkulasiInvoice();
-        }
-
-        // Backward compatibility
-        function setDurasi(jam) {
-            setPresetDurasi(jam);
+        function setPresetDurasi(jam) {
+            document.getElementById('durasi-jam').value = jam;
+            document.getElementById('durasi-hari').value = (jam % 24 === 0) ? (jam / 24) : (jam / 24).toFixed(1);
+            updatePresetActiveState(jam);
+            hitungInvoiceLive();
         }
 
         function toggleDiskonInput() {
-            const check = document.getElementById('check-diskon');
-            const input = document.getElementById('input-diskon');
-            if (check && check.checked) {
-                input.disabled = false;
-                if (parseFloat(input.value || 0) === 0) {
-                    input.value = 10;
-                }
-            } else if (input) {
-                input.disabled = true;
-                input.value = 0;
-            }
-            kalkulasiInvoice();
+            const chk = document.getElementById('diskon-check');
+            document.getElementById('diskon-box').style.display = chk.checked ? 'block' : 'none';
+            hitungInvoiceLive();
         }
 
-        function kalkulasiInvoice() {
-            const selectEl = document.getElementById('select-kendaraan');
-            const plat = selectEl ? selectEl.value : '';
-            const inputJam = document.getElementById('input-jam');
-            const jam = parseInt(inputJam ? inputJam.value : 0) || 0;
-            
-            const durasiLabel = document.getElementById('inv-durasi-label');
-            if (durasiLabel) durasiLabel.textContent = jam;
-
-            const submitBtn = document.getElementById('btn-submit-sewa');
-
-            if (!plat || jam <= 0) {
-                document.getElementById('inv-tarif-harian').textContent = 'Rp 0';
-                document.getElementById('inv-prorata-jam').textContent = 'Rp 0 / jam';
-                document.getElementById('inv-subtotal').textContent = 'Rp 0';
-                document.getElementById('inv-vip-fee').textContent = 'Rp 0';
-                document.getElementById('inv-diskon').textContent = '- Rp 0';
-                document.getElementById('inv-total').textContent = 'Rp 0';
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.style.opacity = '1.0';
-                }
-                return;
+        function applyPromoVoucher() {
+            const code = document.getElementById('voucher-code').value.trim().toUpperCase();
+            if (code === 'SUMENEPHEMAT' || code === 'FLEETPRO' || code === 'DAVANA') {
+                document.getElementById('diskon-check').checked = true;
+                document.getElementById('diskon-box').style.display = 'block';
+                document.getElementById('diskon-input').value = 15;
+                showAlert(`Voucher ${code} berhasil diterapkan! Diskon 15% aktif.`, true);
+            } else {
+                showAlert('Kode voucher tidak valid. Gunakan: SUMENEPHEMAT, FLEETPRO, atau DAVANA', false);
             }
+            hitungInvoiceLive();
+        }
+
+        function hitungInvoiceLive() {
+            const plat = document.getElementById('select-kendaraan').value;
+            const jam = parseInt(document.getElementById('durasi-jam').value) || 24;
+            const denganSupir = document.getElementById('sopir-check').checked;
+            const diskonPersen = document.getElementById('diskon-check').checked ? 
+                (parseFloat(document.getElementById('diskon-input').value) || 0) : 0;
 
             const car = fleetData.find(c => c.plat === plat);
-            if (!car) return;
-
-            // Kunci sewa jika dalam perbaikan
-            if (car.kondisiMesin === 'Dalam Perbaikan' || car.bisaDisewa === false) {
-                showAlert(`Unit ${car.plat} sedang Dalam Perbaikan dan tidak dapat disewa!`, false);
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.style.opacity = '0.5';
-                }
-            } else {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.style.opacity = '1.0';
-                }
+            let tarifHarian = 600000;
+            if (car) {
+                tarifHarian = car.tarifPerHari || car.tarif || (car.kategori === 'VIP' ? 2400000 : 600000);
             }
 
-            const selectSupir = document.getElementById('select-layanan-supir');
-            const denganSupir = selectSupir ? (selectSupir.value === 'true') : false;
+            const tarifPerJam = tarifHarian / 24.0;
+            const subtotal = tarifPerJam * jam;
 
-            const checkDiskon = document.getElementById('check-diskon');
-            let diskonPersen = (checkDiskon && checkDiskon.checked) ? (parseFloat(document.getElementById('input-diskon').value) || 0) : 0;
-            diskonPersen = Math.max(0, Math.min(100, diskonPersen));
+            const tarifSupirPerJam = 150000.0 / 24.0;
+            const biayaSupir = denganSupir ? (tarifSupirPerJam * jam) : 0;
 
-            const tarifHarian = car.tarifPerHari || car.tarif || (car.kategori === 'VIP' ? 2400000 : 600000);
-            const prorataSejam = tarifHarian / 24.0;
-            const isVIP = (car.kategori === 'VIP');
-            
-            const subtotal = jam * prorataSejam;
+            const diskonNilai = (subtotal + biayaSupir) * (diskonPersen / 100.0);
+            const total = Math.max(0, (subtotal + biayaSupir) - diskonNilai);
 
-            // Perhitungan Biaya Supir sesuai spesifikasi domain
-            let biayaSupir = 0;
-            if (denganSupir) {
-                const days = (jam <= 24) ? 1 : Math.ceil(jam / 24.0);
-                biayaSupir = isVIP ? (days * 150000.0) : (days * 100000.0);
-            }
-
-            const totalSebelumDiskon = subtotal + biayaSupir;
-            const potongan = totalSebelumDiskon * (diskonPersen / 100.0);
-            const totalBersih = Math.max(0, totalSebelumDiskon - potongan);
-
-            document.getElementById('inv-tarif-harian').textContent = formatRupiah(tarifHarian) + ' / Hari (24 Jam)';
-            document.getElementById('inv-prorata-jam').textContent = formatRupiah(prorataSejam) + ' / jam';
-            document.getElementById('inv-subtotal').textContent = formatRupiah(subtotal);
-            
-            if (denganSupir) {
-                document.getElementById('inv-vip-fee').textContent = formatRupiah(biayaSupir) + (isVIP ? ' (Supir & VIP Concierge)' : ' (Supir Reguler)');
-            } else {
-                document.getElementById('inv-vip-fee').textContent = 'Rp 0 (Lepas Kunci)';
-            }
-
-            if (diskonPersen > 0) {
-                document.getElementById('inv-diskon').textContent = '- ' + formatRupiah(potongan) + ' (' + diskonPersen + '% Diskon)';
-            } else {
-                document.getElementById('inv-diskon').textContent = '- Rp 0 (0%)';
-            }
-
-            document.getElementById('inv-total').textContent = formatRupiah(totalBersih);
+            document.getElementById('invoice-subtotal').textContent = formatRupiah(subtotal);
+            document.getElementById('invoice-sopir').textContent = formatRupiah(biayaSupir);
+            document.getElementById('invoice-diskon').textContent = formatRupiah(diskonNilai);
+            document.getElementById('invoice-total').textContent = formatRupiah(total);
         }
 
-        // Alias kalkulasiInvoice
-        function hitungInvoiceLive() {
-            kalkulasiInvoice();
-        }
-
-        // Action: Konfirmasi Sewa & Luncurkan ke Peta
         function konfirmasiSewaDanLuncurkan() {
             const plat = document.getElementById('select-kendaraan').value;
-            const penyewa = document.getElementById('input-penyewa').value.trim();
-            const jam = parseInt(document.getElementById('input-jam').value) || 0;
+            const penyewa = document.getElementById('penyewa-nama').value.trim() || 'Pelanggan Prioritas Sumenep';
+            const jam = parseInt(document.getElementById('durasi-jam').value) || 24;
+            const denganSupir = document.getElementById('sopir-check').checked;
+            const diskonPersen = document.getElementById('diskon-check').checked ? 
+                (parseFloat(document.getElementById('diskon-input').value) || 0) : 0;
 
             if (!plat) {
-                showAlert('Silakan pilih unit kendaraan yang ingin disewa!', false);
+                showAlert('Harap pilih kendaraan yang berstatus Standby terlebih dahulu!', false);
                 return;
             }
-
-            const car = fleetData.find(c => c.plat === plat);
-            if (car && (car.kondisiMesin === 'Dalam Perbaikan' || car.bisaDisewa === false)) {
-                showAlert('Kendaraan sedang dalam perbaikan dan tidak dapat disewa!', false);
-                return;
-            }
-
-            if (!penyewa) {
-                showAlert('Harap isi nama pelanggan penyewa!', false);
-                return;
-            }
-            if (jam <= 0) {
-                showAlert('Durasi sewa harus minimal 1 jam!', false);
-                return;
-            }
-
-            const selectSupir = document.getElementById('select-layanan-supir');
-            const denganSupir = selectSupir ? (selectSupir.value === 'true') : false;
-
-            const checkDiskon = document.getElementById('check-diskon');
-            const diskonPersen = (checkDiskon && checkDiskon.checked) ? (parseFloat(document.getElementById('input-diskon').value) || 0) : 0;
 
             if (window.javaBridge && typeof window.javaBridge.sewaMobilDenganDurasi === 'function') {
                 window.javaBridge.sewaMobilDenganDurasi(plat, penyewa, jam, denganSupir, diskonPersen);
-                showAlert(`Unit ${plat} berhasil disewa atas nama "${penyewa}" (${denganSupir ? 'Dengan Supir' : 'Lepas Kunci'}, Diskon: ${diskonPersen}%) selama ${jam} jam dan telah diluncurkan ke Peta!`, true);
+                showAlert(`Penyewaan ${plat} atas nama ${penyewa} berhasil diproses! Unit meluncur ke jalan.`, true);
             } else {
-                showAlert('Java Bridge tidak tersedia.', false);
+                showAlert('Java DesktopBridge tidak terdeteksi.', false);
             }
         }
 
-        // Action: Tambah Mobil Baru
         function tambahArmadaBaru() {
             const plat = document.getElementById('new-plat').value.trim();
             const merk = document.getElementById('new-merk').value.trim();
-            const kategori = document.getElementById('new-kategori').value;
-            const tarifHarian = parseFloat(document.getElementById('new-tarif').value) || 600000;
-            const odo = parseInt(document.getElementById('new-odo').value) || 10000;
+            const tipe = document.getElementById('new-tipe').value;
+            const tarif = parseFloat(document.getElementById('new-tarif').value) || 600000;
+            const odo = parseInt(document.getElementById('new-odo').value) || 15000;
             const kondisi = document.getElementById('new-kondisi').value;
-            const catatan = document.getElementById('new-catatan').value.trim();
+            const catatan = document.getElementById('new-catatan').value.trim() || 'Unit terawat baik';
 
             if (!plat || !merk) {
-                showAlert('Harap isi Plat Nomor dan Merk Kendaraan!', false);
+                showAlert('Plat nomor dan merk mobil wajib diisi!', false);
                 return;
             }
 
             if (window.javaBridge && typeof window.javaBridge.tambahMobil === 'function') {
-                window.javaBridge.tambahMobil(plat, merk, kategori, tarifHarian, odo, kondisi, catatan);
-                showAlert(`Unit baru ${plat} (${merk}) berhasil didaftarkan ke armada pool!`, true);
+                window.javaBridge.tambahMobil(plat, merk, tipe, tarif, odo, kondisi, catatan);
+                showAlert(`Armada baru [${plat}] ${merk} berhasil ditambahkan ke garasi!`, true);
                 document.getElementById('new-plat').value = '';
                 document.getElementById('new-merk').value = '';
-            } else {
-                showAlert('Java Bridge tidak tersedia.', false);
             }
         }
 
-        // Action: Hapus Unit
         function hapusUnit(plat) {
-            if (!confirm(`Konfirmasi hapus kendaraan dengan plat ${plat}?`)) {
-                return;
-            }
-            if (window.javaBridge && typeof window.javaBridge.hapusMobil === 'function') {
-                window.javaBridge.hapusMobil(plat);
-                showAlert(`Armada ${plat} berhasil dihapus dari sistem.`, true);
-            }
-        }
-
-        // Action P12: Simpan Data ke File Teks (armada_store.txt)
-        function simpanKeFileP12() {
-            if (window.javaBridge && typeof window.javaBridge.simpanKeFile === 'function') {
-                window.javaBridge.simpanKeFile();
-            } else {
-                showAlert('Java Bridge simpanKeFile tidak tersedia.', false);
-            }
-        }
-
-        // Action P12: Muat Ulang Data dari File Teks (armada_store.txt)
-        function muatDariFileP12() {
-            if (confirm('Konfirmasi: Muat ulang data armada dari file penyimpanan teks (data/armada_store.txt)? Perubahan yang belum disimpan akan digantikan data dari file.')) {
-                if (window.javaBridge && typeof window.javaBridge.muatDariFile === 'function') {
-                    window.javaBridge.muatDariFile();
-                } else {
-                    showAlert('Java Bridge muatDariFile tidak tersedia.', false);
+            if (confirm(`Yakin ingin menghapus unit [${plat}] dari armada?`)) {
+                if (window.javaBridge && typeof window.javaBridge.hapusMobil === 'function') {
+                    window.javaBridge.hapusMobil(plat);
+                    showAlert(`Unit [${plat}] berhasil dihapus.`, true);
                 }
             }
         }
 
-        // Modal Edit Actions
-        let editingPlat = '';
+        function simpanKeFileP12() {
+            if (window.javaBridge && typeof window.javaBridge.simpanKeFile === 'function') {
+                window.javaBridge.simpanKeFile();
+                showAlert('Data armada dan garasi berhasil disimpan ke data/armada_store.txt (P12)', true);
+            }
+        }
+
+        function muatDariFileP12() {
+            if (window.javaBridge && typeof window.javaBridge.muatDariFile === 'function') {
+                window.javaBridge.muatDariFile();
+                showAlert('Data armada berhasil dimuat ulang dari data/armada_store.txt (P12)', true);
+            }
+        }
+
         function openEditModal(plat) {
             const car = fleetData.find(c => c.plat === plat);
             if (!car) return;
-            editingPlat = plat;
+
             document.getElementById('edit-plat').value = `${car.plat} - ${car.merk}`;
             document.getElementById('edit-tarif').value = car.tarifPerHari || car.tarif || 600000;
             document.getElementById('edit-kondisi').value = car.kondisiMesin || 'Sangat Baik';
             document.getElementById('edit-catatan').value = car.catatanFisik || '';
-            document.getElementById('edit-modal-backdrop').classList.add('show');
+            document.getElementById('edit-modal-backdrop').style.display = 'flex';
         }
 
         function closeEditModal() {
-            document.getElementById('edit-modal-backdrop').classList.remove('show');
-            editingPlat = '';
+            document.getElementById('edit-modal-backdrop').style.display = 'none';
         }
 
         function submitEditKendaraan() {
-            if (!editingPlat) return;
-            const tarifHarian = parseFloat(document.getElementById('edit-tarif').value) || 0;
+            const fullPlat = document.getElementById('edit-plat').value;
+            const plat = fullPlat.split(' - ')[0];
+            const tarif = parseFloat(document.getElementById('edit-tarif').value) || 600000;
             const kondisi = document.getElementById('edit-kondisi').value;
-            const catatan = document.getElementById('edit-catatan').value.trim();
-
-            if (tarifHarian <= 0) {
-                alert('Tarif harian harus lebih besar dari 0!');
-                return;
-            }
+            const catatan = document.getElementById('edit-catatan').value;
 
             if (window.javaBridge && typeof window.javaBridge.editKendaraan === 'function') {
-                window.javaBridge.editKendaraan(editingPlat, tarifHarian, kondisi, catatan);
-                showAlert(`Spesifikasi dan tarif ${editingPlat} berhasil diperbarui!`, true);
+                window.javaBridge.editKendaraan(plat, tarif, kondisi, catatan);
                 closeEditModal();
-            } else {
-                showAlert('Java Bridge tidak tersedia.', false);
+                showAlert(`Data unit [${plat}] berhasil diperbarui!`, true);
             }
         }
 
-        // Action: Tambah Kapasitas Slot
         function tambahSlotKapasitas() {
             if (window.javaBridge && typeof window.javaBridge.tambahKapasitas === 'function') {
                 window.javaBridge.tambahKapasitas(4);
-                showAlert('Kapasitas parkir pool berhasil diperluas (+4 bay slot)!', true);
+                showAlert('Kapasitas depo berhasil ditingkatkan (+4 bay).', true);
             }
         }
 
-        // Action: Kurangi Kapasitas Slot Kosong
         function kurangiSlotKapasitas() {
             if (window.javaBridge && typeof window.javaBridge.kurangiKapasitas === 'function') {
                 window.javaBridge.kurangiKapasitas(4);
-                showAlert('Permintaan pengurangan bay kosong (-4 bay) telah diproses.', true);
+                showAlert('Permintaan pemangkasan bay kosong (-4 bay) diproses.', true);
             }
         }
 
@@ -1041,20 +1072,37 @@
             renderSelectDropdown();
             renderDossierCards();
             hitungInvoiceLive();
+
+            // Update Telemetry Pills
+            let onRoad = 0;
+            let goodCondition = 0;
+            let totalRevenue = 14500000;
+            fleetData.forEach(c => {
+                if (c.status === 'DISEWA' || c.disewa === true) {
+                    onRoad++;
+                    totalRevenue += (c.tarifPerHari || 600000) * 3;
+                }
+                if (c.kondisiMesin !== 'Dalam Perbaikan') goodCondition++;
+            });
+            document.getElementById('pill-onroad').textContent = `${onRoad} / ${fleetData.length} Unit`;
+            document.getElementById('pill-revenue').textContent = formatRupiah(totalRevenue);
+            const healthPct = Math.round((goodCondition / Math.max(1, fleetData.length)) * 100);
+            document.getElementById('pill-health').textContent = `${healthPct}% Optimal`;
+            document.getElementById('dock-badge-orders').textContent = onRoad;
         }
 
         function updateParkingData(data) {
             if (!data) return;
             parkingData = data;
             if (data.totalKapasitas) {
-                document.getElementById('depot-slot-tag').textContent = `Kapasitas Pool: ${data.totalKapasitas} Bay (Tersedia: ${data.slotKosong})`;
+                document.getElementById('depot-slot-tag').textContent = `Kapasitas: ${data.totalKapasitas} Bay (Tersedia: ${data.slotKosong})`;
             }
         }
 
         function renderSelectDropdown() {
             const select = document.getElementById('select-kendaraan');
             const currentVal = select.value;
-            select.innerHTML = '<option value="">-- Pilih Kendaraan Tersedia --</option>';
+            select.innerHTML = '<option value="">-- Pilih Kendaraan Standby --</option>';
 
             fleetData.forEach(car => {
                 const isRented = (car.status === 'DISEWA' || car.disewa === true);
@@ -1084,7 +1132,7 @@
         function renderDossierCards() {
             const container = document.getElementById('dossier-container');
             container.innerHTML = '';
-            document.getElementById('dossier-count').textContent = `${fleetData.length} Unit Terdaftar`;
+            document.getElementById('dossier-count').textContent = `${fleetData.length} Unit Terdaftar di Garasi`;
 
             fleetData.forEach(car => {
                 const isVIP = (car.kategori === 'VIP');
@@ -1092,19 +1140,17 @@
                 const isMaintenance = (car.kondisiMesin === 'Dalam Perbaikan');
                 const tarifHarian = car.tarifPerHari || car.tarif || (isVIP ? 2400000 : 600000);
                 const prorata = tarifHarian / 24.0;
-                const odo = car.odoMeterKm ? car.odoMeterKm.toLocaleString('id-ID') : '25.000';
-                const kondisi = car.kondisiMesin || 'Sangat Baik';
-                const catatan = car.catatanFisik || 'Bodi mulus, AC dingin';
-                const bay = car.baySlot || car.slot || 'Pool';
+                const odo = car.odoMeterKm ? car.odoMeterKm.toLocaleString('id-ID') : '15.000';
+                const bay = car.baySlot || car.slot || 'Depo';
+                const batteryPct = car.baterai || 92;
 
                 const card = document.createElement('div');
-                let cardClass = `dossier-card ${isVIP ? 'vip' : 'reguler'}`;
-                if (isMaintenance) cardClass += ' maintenance';
+                let cardClass = `dossier-card ${isVIP ? 'vip' : ''} ${isMaintenance ? 'maintenance' : ''}`;
                 card.className = cardClass;
 
                 let statusBadgeHtml = '';
                 if (isMaintenance) {
-                    statusBadgeHtml = '<span class="status-pill maintenance">⚠️ DALAM PERBAIKAN</span>';
+                    statusBadgeHtml = '<span class="status-pill maintenance">⚠️ PERBAIKAN</span>';
                 } else if (isRented) {
                     statusBadgeHtml = '<span class="status-pill disewa">● DISEWA</span>';
                 } else {
@@ -1114,64 +1160,54 @@
                 card.innerHTML = `
                     <div>
                         <div class="dossier-header">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                ${getCarVectorSvg(car.kategori)}
-                                <div>
-                                    <div style="font-size:13.5px; font-weight:800; color:#0f172a;">${car.plat}</div>
-                                    <span class="${isVIP ? 'car-badge-vip' : 'car-badge-reguler'}">${car.kategori}</span>
-                                </div>
+                            <div>
+                                <div class="dossier-plate">${car.plat}</div>
+                                <div style="font-size:11.5px; color:#cbd5e1; font-weight:700;">${car.merk}</div>
                             </div>
                             ${statusBadgeHtml}
                         </div>
 
-                        <div class="dossier-body">
+                        <div class="tactical-tags">
+                            <span class="tactical-tag tag-gps">GPS Pro</span>
+                            <span class="tactical-tag ${isVIP ? 'tag-vip' : 'tag-ins'}">${isVIP ? 'VIP Luxury' : 'Reguler'}</span>
+                            <span class="tactical-tag tag-ins">Asuransi</span>
+                            <span class="tactical-tag">Slot ${bay}</span>
+                        </div>
+
+                        <div class="battery-bar-container">
+                            <div class="battery-bar-fill" style="width: ${batteryPct}%;"></div>
+                        </div>
+
+                        <div class="dossier-body" style="margin-top: 8px;">
                             <div class="spec-row">
-                                <span>Merk / Tipe:</span>
-                                <strong>${car.merk}</strong>
-                            </div>
-                            <div class="spec-row">
-                                <span>Tarif Harian:</span>
-                                <strong style="color:#1b4332;">${formatRupiah(tarifHarian)} / 24 Jam</strong>
+                                <span>Tarif Harian (24 Jam):</span>
+                                <strong style="color:#34d399;">${formatRupiah(tarifHarian)}</strong>
                             </div>
                             <div class="spec-row">
                                 <span>Prorata Sejam:</span>
-                                <strong style="color:#0369a1;">${formatRupiah(prorata)} / jam</strong>
+                                <strong style="color:#60a5fa;">${formatRupiah(prorata)}/jam</strong>
                             </div>
                             <div class="spec-row">
-                                <span>Kondisi Mesin:</span>
-                                <strong style="color:${isMaintenance ? '#b91c1c' : '#1e293b'};">${kondisi}</strong>
-                            </div>
-                            <div class="spec-row">
-                                <span>Odometer:</span>
+                                <span>Odometer Terkini:</span>
                                 <strong>${odo} km</strong>
                             </div>
                             <div class="spec-row">
-                                <span>Alokasi Bay:</span>
-                                <strong>${bay}</strong>
-                            </div>
-                            <div class="spec-row">
-                                <span>Baterai GPS:</span>
-                                <strong>${car.baterai}%</strong>
-                            </div>
-                            ${isRented ? `
-                            <div class="spec-row" style="color:#b91c1c;">
-                                <span>Penyewa:</span>
-                                <strong>${car.penyewa || 'Operasional'}</strong>
-                            </div>` : ''}
-
-                            <div class="physical-notes">
-                                📝 <em>${catatan}</em>
+                                <span>Status / Penyewa:</span>
+                                <strong>${isRented ? (car.penyewa || 'Pelanggan') : 'Siap di Depo'}</strong>
                             </div>
                         </div>
                     </div>
 
                     <div class="dossier-actions">
-                        <button class="btn-edit" onclick="openEditModal('${car.plat}')">
-                            ✏️ Edit Unit
-                        </button>
-                        <button class="btn-delete" ${isRented ? 'disabled title="Kendaraan sedang aktif di jalan, tidak dapat dihapus"' : ''} onclick="hapusUnit('${car.plat}')">
-                            ${isRented ? '🔒 Terkunci' : '🗑️ Hapus'}
-                        </button>
+                        <button class="btn-card-act" onclick="openEditModal('${car.plat}')">✏️ Edit</button>
+                        ${isRented ? 
+                            `<button class="btn-card-act return" onclick="window.javaBridge && window.javaBridge.kembalikanMobil('${car.plat}')">🅿️ Kembalikan</button>` : 
+                            (isMaintenance ? 
+                                `<button class="btn-card-act" style="opacity:0.5; cursor:not-allowed;" disabled>⚠️ Terkunci</button>` : 
+                                `<button class="btn-card-act dispatch" onclick="dispatchDirect('${car.plat}')">🚀 Sewakan</button>`
+                            )
+                        }
+                        <button class="btn-card-act" style="color:#f87171;" onclick="hapusUnit('${car.plat}')">🗑️</button>
                     </div>
                 `;
 
@@ -1179,23 +1215,11 @@
             });
         }
 
-        // Bridge Initialization
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.javaBridge) {
-                if (typeof window.javaBridge.getFleetData === 'function') {
-                    try {
-                        const initialFleet = JSON.parse(window.javaBridge.getFleetData());
-                        updateFleetData(initialFleet);
-                    } catch(e) {}
-                }
-                if (typeof window.javaBridge.getParkingData === 'function') {
-                    try {
-                        const initialParking = JSON.parse(window.javaBridge.getParkingData());
-                        updateParkingData(initialParking);
-                    } catch(e) {}
-                }
-            }
-        });
+        function dispatchDirect(plat) {
+            document.getElementById('select-kendaraan').value = plat;
+            hitungInvoiceLive();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>

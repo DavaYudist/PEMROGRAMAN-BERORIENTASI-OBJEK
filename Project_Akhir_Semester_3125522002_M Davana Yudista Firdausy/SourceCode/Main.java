@@ -673,6 +673,12 @@ public class Main extends Application {
         public String getParkingData() {
             return rental.getParkingJson();
         }
+
+        public void switchTab(int tabIndex) {
+            Platform.runLater(() -> {
+                Main.this.switchTab(tabIndex);
+            });
+        }
     }
 
     public static void main(String[] args) {
