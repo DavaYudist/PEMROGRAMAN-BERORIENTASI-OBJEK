@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 public class TestGameSimulationRunner {
 
     private static int totalPassed = 0;
-    private static final int TOTAL_TESTS = 12;
+    private static final int TOTAL_TESTS = 14;
 
     public static void main(String[] args) {
         System.out.println("==========================================================================================");
@@ -38,6 +38,8 @@ public class TestGameSimulationRunner {
         runTestCase(10, "Krisis Penggelapan: Evaluasi Jatuh Tempo & MobilDibawaKaburException", () -> testKrisisPenggelapan());
         runTestCase(11, "Resolusi Krisis Taktis: Sukses Matikan Mesin Remote via GPS", () -> testResolusiKrisisGPS());
         runTestCase(12, "Persistensi P12: Serialisasi & Deserialisasi State Game", () -> testSavegamePersistence());
+        runTestCase(13, "Collision Detection: Deteksi Bentrok Jadwal & Penolakan Double-Booking", () -> testCollisionDetection());
+        runTestCase(14, "Upgrade Gratis & Bursa Bekas: Alokasi Tier Tinggi & Evaluasi Diskon 60%", () -> testUpgradeGratisDanBursaBekas());
 
         System.out.println("\n==========================================================================================");
         System.out.printf("  HASIL PENGUJIAN AKHIR: %d DARI %d TEST CASES LULUS (PASS %.1f%%)\n",
@@ -201,4 +203,87 @@ public class TestGameSimulationRunner {
             throw new AssertionError("Gagal persistensi: " + e.getMessage());
         }
     }
+
+    private static void testCollisionDetection() {
+        PerusahaanRental rental = new PerusahaanRental("Garasi Collision Test", 200000000);
+        // Unit M 2233 SM (Avanza - KELUARGA)
+        PesananMasuk p1 = new PesananMasuk(101, "Pak Budi", "Wisata", "KELUARGA", 24, false, true, true, true, false);
+        p1.setHariMulai(1);
+        p1.setJamMulai(8);
+        rental.getManajerPesanan().tambahPesanan(p1);
+
+        try {
+            rental.konfirmasiSewaDenganUnit(p1.getId(), "M 2233 SM");
+        } catch (Exception e) {
+            throw new AssertionError("Sewa awal harus berhasil: " + e.getMessage());
+        }
+
+        // Cek bentrok pada jam yang sama
+        boolean bentrok = rental.cekJadwalBentrok("M 2233 SM", 1, 10, 12);
+        if (!bentrok) throw new AssertionError("Harusnya terdeteksi BENTROK jadwal pada rentang sewa yang sama!");
+
+        // Coba konfirmasi sewa kedua yang bentrok -> harus ditolak!
+        PesananMasuk p2 = new PesananMasuk(102, "Ibu Ani", "Arisan", "KELUARGA", 12, false, true, true, true, false);
+        p2.setHariMulai(1);
+        p2.setJamMulai(10);
+        rental.getManajerPesanan().tambahPesanan(p2);
+
+        try {
+            rental.konfirmasiSewaDenganUnit(p2.getId(), "M 2233 SM");
+            throw new AssertionError("Harusnya menolak alokasi unit yang jadwalnya bentrok!");
+        } catch (IllegalStateException e) {
+            // Expected: bentrok jadwal!
+        } catch (Exception e) {
+            throw new AssertionError("Exception tidak sesuai: " + e.getMessage());
+        }
+
+        // Cek tidak bentrok pada hari berikutnya jauh setelah sewa selesai
+        boolean tidakBentrok = rental.cekJadwalBentrok("M 2233 SM", 5, 8, 12);
+        if (tidakBentrok) throw new AssertionError("Harusnya KOSONG (tidak bentrok) pada hari ke-5!");
+    }
+
+    private static void testUpgradeGratisDanBursaBekas() {
+        PerusahaanRental rental = new PerusahaanRental("Garasi Upgrade Test", 250000000);
+        double saldoAwal = rental.getKas().getSaldo();
+
+        // 1. Uji Upgrade Gratis: Pelanggan minta LCGC (350.000 / hr), tapi dialokasikan Innova Medium SUV (900.000 / hr)
+        PesananMasuk p = new PesananMasuk(999, "Pak RT", "Dinas Cepat", "LCGC", 24, false, true, true, true, false);
+        p.setHariMulai(1);
+        p.setJamMulai(8);
+        rental.getManajerPesanan().tambahPesanan(p);
+
+        try {
+            Kendaraan innova = rental.findKendaraan("M 3344 SM");
+            if (innova == null) throw new AssertionError("Innova harus ada di default fleet.");
+
+            // Lakukan sewa dengan alokasi upgrade gratis
+            rental.konfirmasiSewaDenganUnit(p.getId(), "M 3344 SM");
+
+            // Verifikasi kas bertambah tarif LCGC (350.000) bukan 900.000
+            double saldoSetelahSewa = rental.getKas().getSaldo();
+            double pemasukan = saldoSetelahSewa - saldoAwal;
+            if (Math.abs(pemasukan - 350000.0) > 1.0) {
+                throw new AssertionError("Pemasukan upgrade gratis harus mengikuti tarif LCGC (Rp 350.000), aktual: " + pemasukan);
+            }
+            if (innova.getStatusSewa() != Kendaraan.StatusSewa.DISEWA) {
+                throw new AssertionError("Status Innova harus berubah menjadi DISEWA.");
+            }
+
+            // 2. Uji Bursa Mobil Bekas (Diskon 60% harga baru, kondisi 72%)
+            rental.beliMobilBekas("LCGC", "M 7788 SM", "Daihatsu Ayla 1.0", 120000000, 300000);
+            Kendaraan aylaBekas = rental.findKendaraan("M 7788 SM");
+            if (aylaBekas == null) throw new AssertionError("Unit bekas harus terdaftar.");
+            if (!aylaBekas.isBekas()) throw new AssertionError("Flag isBekas() harus true.");
+            if (aylaBekas.getKondisiMesin() > 75.0) throw new AssertionError("Kondisi mobil bekas harus ~72%, aktual: " + aylaBekas.getKondisiMesin());
+
+            // Biaya beli bekas = 120jt * 0.6 = 72jt
+            double pengeluaran = saldoSetelahSewa - rental.getKas().getSaldo();
+            if (Math.abs(pengeluaran - 72000000.0) > 1.0) {
+                throw new AssertionError("Pengeluaran beli bekas harus 60% harga baru (Rp 72 jt), aktual: " + pengeluaran);
+            }
+        } catch (Exception e) {
+            throw new AssertionError("Uji upgrade gratis & bursa bekas gagal: " + e.getMessage());
+        }
+    }
 }
+

@@ -109,3 +109,4 @@ public class KasPerusahaan implements Serializable {
         return sb.toString();
     }
 }
+

@@ -11,3 +11,4 @@ public interface PelacakTelemetri {
     void updateKoordinat(double lat, double lng);
     boolean isGpsAktif();
 }
+

@@ -57,3 +57,4 @@
 3. Pilihan mode:
    - **Mode [1]**: Membuka Game Tycoon Desktop WebKit (JavaFX WebView).
    - **Mode [2]**: Menjalankan Test Regression Otomatis (12 Test Cases PASS).
+

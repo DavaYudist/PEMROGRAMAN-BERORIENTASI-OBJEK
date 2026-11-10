@@ -538,3 +538,270 @@ body {
 }
 .toast-success { border-left: 4px solid var(--primary-light); color: var(--primary-dark); }
 .toast-error { border-left: 4px solid var(--accent-red); color: var(--accent-red); }
+
+/* EVENT MUSIMAN HUD BANNER */
+.event-banner {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    animation: fadeIn 0.3s ease;
+}
+
+/* ==========================================================
+   TAPLOKA IN-GAME BOTTOM SHEET: "PILIH UNIT" DISPATCH MODAL
+   ========================================================== */
+.bottom-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 20000;
+}
+.bottom-sheet-overlay.on {
+    display: flex;
+}
+.bottom-sheet-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 580px;
+    max-height: 85vh;
+    border-radius: 24px 24px 0 0;
+    padding: 12px 18px 24px;
+    box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.2);
+    overflow-y: auto;
+    animation: slideUp 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0.5; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.sheet-grab {
+    width: 44px;
+    height: 5px;
+    background: #cbd5e1;
+    border-radius: 5px;
+    margin: 4px auto 14px;
+}
+.sheet-header {
+    margin-bottom: 14px;
+}
+.sheet-title {
+    font-size: 18px;
+    font-weight: 850;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+.sheet-lead {
+    font-size: 12.5px;
+    color: #475569;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+.sheet-context-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+/* LIST OF VEHICLES IN BOTTOM SHEET */
+.sheet-cars-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+/* VEHICLE ROW ITEM */
+.car-pick-opt {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 12px;
+    text-align: left;
+    width: 100%;
+    transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+    cursor: pointer;
+}
+.car-pick-opt.clickable:hover {
+    background: #ffffff;
+    border-color: #059669;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.15);
+    transform: translateY(-1px);
+}
+.car-pick-opt.clickable:active {
+    transform: scale(0.99);
+}
+.car-pick-opt.dis {
+    opacity: 0.60;
+    background: #f1f5f9;
+    cursor: not-allowed;
+    border-color: #cbd5e1;
+}
+
+/* VECTOR CAR SPRITE THUMBNAIL */
+.car-thumb-box {
+    width: 68px;
+    height: 52px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.car-thumb-svg {
+    width: 54px;
+    height: 38px;
+}
+
+.car-pick-info {
+    flex: 1;
+    min-width: 0;
+}
+.car-pick-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+.badge-plate {
+    background: #1e293b;
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+}
+.car-pick-title {
+    font-size: 13px;
+    font-weight: 750;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.car-pick-sub {
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+/* STATUS BADGES */
+.badge-status-free {
+    color: #059669;
+    font-weight: 800;
+    font-size: 11px;
+    background: rgba(5, 150, 105, 0.1);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+.badge-status-clash {
+    color: #dc2626;
+    font-weight: 800;
+    font-size: 11px;
+    background: rgba(220, 38, 38, 0.1);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+.badge-upgrade {
+    color: #047857;
+    background: #d1fae5;
+    font-weight: 800;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    border: 1px solid #a7f3d0;
+}
+
+/* MINI TIMELINE TRACK */
+.mini-track {
+    position: relative;
+    height: 26px;
+    background: repeating-linear-gradient(90deg, #f1f5f9 0, #f1f5f9 calc(100%/7 - 1px), #cbd5e1 calc(100%/7 - 1px), #cbd5e1 calc(100%/7));
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.track-blk {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    border-radius: 4px;
+    font-size: 9.5px;
+    font-weight: 750;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+}
+.track-blk.solid {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+}
+.track-blk.solid-vip {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #1e1b4b;
+}
+.track-blk.want {
+    border: 2px dashed #059669;
+    background: rgba(16, 185, 129, 0.18);
+    color: #047857;
+    z-index: 5;
+}
+.track-blk.clash {
+    border: 2px dashed #dc2626;
+    background: rgba(220, 38, 38, 0.20);
+    color: #b91c1c;
+    z-index: 5;
+}
+
+.btn-sheet-close {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 750;
+    color: #334155;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.15s ease;
+}
+.btn-sheet-close:hover {
+    background: #e2e8f0;
+}
+

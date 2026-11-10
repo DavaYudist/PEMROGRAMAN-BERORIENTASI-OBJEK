@@ -9,3 +9,4 @@ public interface RemoteEngineControl {
     boolean hidupkanMesinRemote();
     boolean isMesinDimatikanRemote();
 }
+

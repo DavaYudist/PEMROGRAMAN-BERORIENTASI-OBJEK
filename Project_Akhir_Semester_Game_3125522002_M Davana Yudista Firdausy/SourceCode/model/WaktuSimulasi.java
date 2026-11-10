@@ -82,3 +82,4 @@ public class WaktuSimulasi implements Serializable {
             hari, getNamaHari(), jam, menit, kecepatan, isPaused, getWaktuString());
     }
 }
+

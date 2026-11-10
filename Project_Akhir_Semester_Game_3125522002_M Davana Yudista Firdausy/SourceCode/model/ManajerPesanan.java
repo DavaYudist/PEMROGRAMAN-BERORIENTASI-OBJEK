@@ -92,41 +92,134 @@ public class ManajerPesanan implements Serializable {
         return p;
     }
 
-    public synchronized void terimaPesanan(long idPesanan, String platNomor, WaktuSimulasi waktu,
-                                          KasPerusahaan kas, PerusahaanRental rental)
+    public static int getTierLevel(String kategori) {
+        if (kategori == null) return 0;
+        switch (kategori.toUpperCase()) {
+            case "LCGC": return 0;
+            case "KELUARGA": return 1;
+            case "MEDIUM_SUV": return 2;
+            case "MEWAH_VIP": return 3;
+            default: return 1;
+        }
+    }
+
+    public static double getTarifDasarKategori(String kategori) {
+        if (kategori == null) return 350000.0;
+        switch (kategori.toUpperCase()) {
+            case "LCGC": return 350000.0;
+            case "KELUARGA": return 550000.0;
+            case "MEDIUM_SUV": return 900000.0;
+            case "MEWAH_VIP": return 2800000.0;
+            default: return 550000.0;
+        }
+    }
+
+    /**
+     * Memeriksa apakah jadwal sewa untuk kendaraan tertentu bentrok dengan sewa aktif atau reservasi yang sudah ada.
+     */
+    public boolean cekJadwalBentrok(String platNomor, int jamMulai, int durasiJam) {
+        return cekJadwalBentrok(platNomor, 0, jamMulai, durasiJam, false);
+    }
+
+    public boolean cekJadwalBentrok(String platNomor, int hariMulai, int jamMulai, int durasiJam, boolean isCarWashInhouse) {
+        int targetMulai = (hariMulai > 0) ? ((hariMulai - 1) * 24 + jamMulai) : jamMulai;
+        int targetSelesai = targetMulai + durasiJam + (isCarWashInhouse ? 0 : 6);
+
+        for (SesiSewa sesi : daftarSesiSewa) {
+            if (!sesi.getPlatNomor().equalsIgnoreCase(platNomor)) continue;
+            if (sesi.isSelesai() || sesi.isDibawaKabur()) continue;
+
+            int sesiMulai = (sesi.getHariMulai() - 1) * 24 + sesi.getJamMulai();
+            int sesiSelesai = sesiMulai + sesi.getDurasiJam() + (isCarWashInhouse ? 0 : 6);
+
+            if (targetMulai < sesiSelesai && sesiMulai < targetSelesai) {
+                return true; // Bentrok jadwal
+            }
+        }
+        return false; // Kosong
+    }
+
+    /**
+     * Konfirmasi Alokasi Unit Kendaraan Spesifik untuk Pesanan (Taploka "Pilih Unit").
+     * Mendukung upgrade gratis jika dialokasikan kendaraan dengan kelas lebih tinggi.
+     */
+    public synchronized boolean konfirmasiSewaDenganUnit(long idPesanan, String platNomor, WaktuSimulasi waktu,
+                                                        KasPerusahaan kas, PerusahaanRental rental)
             throws Exception {
         PesananMasuk target = cariPesanan(idPesanan);
         if (target == null) throw new IllegalArgumentException("Pesanan ID " + idPesanan + " tidak ditemukan.");
         if (target.getStatus() != PesananMasuk.StatusPesanan.PENDING) {
-            throw new IllegalStateException("Pesanan sudah tidak dalam status PENDING.");
+            throw new IllegalStateException("Pesanan ID " + idPesanan + " sudah diproses (Status: " + target.getStatus() + ").");
         }
 
         Kendaraan k = rental.findKendaraan(platNomor);
-        if (k == null) throw new IllegalArgumentException("Kendaraan plat " + platNomor + " tidak ditemukan.");
-        if (k.getStatusSewa() != Kendaraan.StatusSewa.SIAP) {
-            throw new IllegalStateException("Kendaraan " + platNomor + " sedang tidak berstatus SIAP.");
+        if (k == null) throw new IllegalArgumentException("Kendaraan plat " + platNomor + " tidak ditemukan di armada.");
+        if (k.getStatusSewa() == Kendaraan.StatusSewa.HILANG || k.getStatusSewa() == Kendaraan.StatusSewa.SERVIS) {
+            throw new IllegalStateException("Kendaraan " + platNomor + " sedang tidak dapat disewa (Status: " + k.getStatusSewa() + ").");
         }
 
-        // Kalkulasi Biaya Sewa
-        double totalBiaya = k.hitungBiayaSewa(target.getDurasiJam(), target.isDenganSopir());
+        // 1. Invariant: Validasi Kompatibilitas Kelas (Upgrade gratis diperbolehkan, downgrade ditolak)
+        int orderTier = getTierLevel(target.getKategoriDiminta());
+        int carTier = getTierLevel(k.getKategori());
+        if (carTier < orderTier) {
+            throw new IllegalStateException("Kelas unit " + k.getKategori() + " lebih rendah dari permintaan pelanggan (" + target.getKategoriDiminta() + ").");
+        }
 
-        // Mutasi State
+        // 2. Invariant: Validasi Tabrakan Jadwal (Collision Check)
+        boolean bentrok = cekJadwalBentrok(platNomor, target.getHariMulai(), target.getJamMulai(), target.getDurasiJam(), rental.isCarWashInhouse());
+        if (bentrok) {
+            throw new IllegalStateException("Jadwal bentrok dengan sewa aktif untuk unit " + platNomor + ".");
+        }
+
+        // 3. Kalkulasi Biaya: Jika upgrade gratis, tarif dasar dihitung berdasarkan kelas yang diminta
+        double totalBiaya;
+        if (carTier > orderTier) {
+            double tarifDasar = getTarifDasarKategori(target.getKategoriDiminta());
+            totalBiaya = (tarifDasar / 24.0) * target.getDurasiJam();
+            if (target.isDenganSopir()) {
+                totalBiaya += (150000.0 / 24.0) * target.getDurasiJam();
+            }
+        } else {
+            totalBiaya = k.hitungBiayaSewa(target.getDurasiJam(), target.isDenganSopir());
+        }
+
+        if (rental.getEventAktif() != null) {
+            totalBiaya *= rental.getEventAktif().multiplierTarif;
+        }
+
+        // 4. Mutasi State Kendaraan
         k.setStatusSewa(Kendaraan.StatusSewa.DISEWA);
         k.setPenyewaSaatIni(target.getNamaPenyewa());
         k.setDurasiJamSewa(target.getDurasiJam());
         k.setJamMulaiSewa(waktu.getJam());
         k.setDenganSopir(target.isDenganSopir());
 
+        // 5. Mutasi State Pesanan
         target.setStatus(PesananMasuk.StatusPesanan.DISEWA);
         target.setPlatDialokasikan(platNomor);
 
-        // Tambah Kas Pemasukan
-        kas.tambahPemasukan(totalBiaya, "Sewa " + k.getMerk() + " [" + platNomor + "] oleh " + target.getNamaPenyewa());
+        // 6. Catat Transaksi Finansial
+        String upgradeNote = (carTier > orderTier) ? " (Upgrade Gratis dari " + target.getKategoriDiminta() + ")" : "";
+        kas.tambahPemasukan(totalBiaya, "Sewa " + k.getMerk() + " [" + platNomor + "] oleh " + target.getNamaPenyewa() + upgradeNote);
 
-        // Buat Sesi Sewa
+        // 7. Buat Sesi Sewa untuk Gantt Timeline
         SesiSewa sesi = new SesiSewa(autoIncrementSesiId++, platNomor, target.getNamaPenyewa(),
-                waktu.getHari(), waktu.getJam(), target.getDurasiJam(), totalBiaya, target.isDenganSopir());
+                target.getHariMulai(), target.getJamMulai(), target.getDurasiJam(), totalBiaya, target.isDenganSopir());
         daftarSesiSewa.add(sesi);
+
+        return true;
+    }
+
+    public synchronized boolean konfirmasiSewaDenganUnit(String idPesanan, String platNomor, WaktuSimulasi waktu,
+                                                        KasPerusahaan kas, PerusahaanRental rental)
+            throws Exception {
+        return konfirmasiSewaDenganUnit(Long.parseLong(idPesanan.trim()), platNomor, waktu, kas, rental);
+    }
+
+    public synchronized void terimaPesanan(long idPesanan, String platNomor, WaktuSimulasi waktu,
+                                          KasPerusahaan kas, PerusahaanRental rental)
+            throws Exception {
+        konfirmasiSewaDenganUnit(idPesanan, platNomor, waktu, kas, rental);
     }
 
     public synchronized void tolakPesanan(long idPesanan) {
@@ -295,6 +388,12 @@ public class ManajerPesanan implements Serializable {
         return null;
     }
 
+    public void tambahPesanan(PesananMasuk p) {
+        if (p != null) {
+            antrianPesanan.add(p);
+        }
+    }
+
     public List<PesananMasuk> getAntrianPesanan() {
         return Collections.unmodifiableList(antrianPesanan);
     }
@@ -327,3 +426,4 @@ public class ManajerPesanan implements Serializable {
         return sb.toString();
     }
 }
+

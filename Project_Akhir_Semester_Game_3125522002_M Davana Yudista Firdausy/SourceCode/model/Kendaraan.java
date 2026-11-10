@@ -24,6 +24,7 @@ public abstract class Kendaraan implements PelacakTelemetri, RemoteEngineControl
     private int odoMeterKm;
     private double kondisiMesin; // 0.0 - 100.0 persen
     private boolean isGPSInstalled;
+    private boolean isBekas; // Unit bursa bekas (Taploka USED market)
     private StatusSewa statusSewa;
 
     // Telemetri Koordinat & GPS
@@ -147,6 +148,14 @@ public abstract class Kendaraan implements PelacakTelemetri, RemoteEngineControl
     }
 
     // Getters & Setters
+    public boolean isBekas() { return isBekas; }
+    public void setBekas(boolean bekas) {
+        this.isBekas = bekas;
+        if (bekas && this.kondisiMesin > 72.0) {
+            this.kondisiMesin = 72.0; // Kondisi awal unit bekas
+        }
+    }
+
     public String getPlatNomor() { return platNomor; }
     public String getMerk() { return merk; }
     public void setMerk(String merk) { this.merk = merk; }
@@ -175,10 +184,11 @@ public abstract class Kendaraan implements PelacakTelemetri, RemoteEngineControl
     public String toJson() {
         return String.format(Locale.US,
             "{\"plat\":\"%s\",\"merk\":\"%s\",\"kategori\":\"%s\",\"hargaBeli\":%.0f,\"tarifHarian\":%.0f," +
-            "\"odoMeter\":%d,\"kondisiMesin\":%.1f,\"isGPS\":%b,\"status\":\"%s\",\"isCutoff\":%b," +
+            "\"odoMeter\":%d,\"kondisiMesin\":%.1f,\"isGPS\":%b,\"isBekas\":%b,\"status\":\"%s\",\"isCutoff\":%b," +
             "\"penyewa\":\"%s\",\"durasiJam\":%d,\"sopir\":%b,\"slot\":\"%s\",\"lat\":%.6f,\"lng\":%.6f}",
             platNomor, merk, getKategori(), hargaBeliRealistis, tarifHarian,
-            odoMeterKm, kondisiMesin, isGPSInstalled, statusSewa.name(), isEngineCutoff,
+            odoMeterKm, kondisiMesin, isGPSInstalled, isBekas, statusSewa.name(), isEngineCutoff,
             penyewaSaatIni.replace("\"", "\\\""), durasiJamSewa, denganSopir, slotGarasi, lat, lng);
     }
 }
+

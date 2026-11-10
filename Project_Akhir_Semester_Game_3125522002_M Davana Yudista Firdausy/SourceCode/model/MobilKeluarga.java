@@ -30,3 +30,4 @@ public class MobilKeluarga extends Kendaraan {
         return biayaMobil + biayaSopir;
     }
 }
+

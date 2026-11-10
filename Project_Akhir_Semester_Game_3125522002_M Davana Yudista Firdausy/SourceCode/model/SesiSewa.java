@@ -60,3 +60,4 @@ public class SesiSewa implements Serializable {
             durasiJam, getHariSelesai(), totalBiaya, denganSopir, isSelesai, isDibawaKabur);
     }
 }
+

@@ -30,3 +30,4 @@ public class MobilLCGC extends Kendaraan {
         return biayaMobil + biayaSopir;
     }
 }
+

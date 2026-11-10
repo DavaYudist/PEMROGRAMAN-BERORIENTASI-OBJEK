@@ -52,6 +52,22 @@ function updateGameState(data) {
         document.getElementById('hud-clock-val').textContent = `⏱️ ${data.waktu.waktuString}`;
     }
 
+    // Event Banner
+    const eventBanner = document.getElementById('hud-event-banner');
+    if (eventBanner) {
+        if (data.sisaEvent > 0 && data.event && data.event !== 'NORMAL') {
+            eventBanner.style.display = 'flex';
+            eventBanner.innerHTML = `
+                <div>🎉 <strong>Event Musiman: ${data.eventJudul}</strong> (Tarif & Frekuensi Order Dinamis)</div>
+                <div style="background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:6px; font-size:11px;">
+                    Sisa: <strong>${data.sisaEvent} Hari</strong>
+                </div>
+            `;
+        } else {
+            eventBanner.style.display = 'none';
+        }
+    }
+
     // 2. Stats Banner
     document.getElementById('stat-total-armada').textContent = `${data.totalArmada} Unit`;
     const onRoadCount = data.armada ? data.armada.filter(c => c.status === 'DISEWA').length : 0;
@@ -68,11 +84,24 @@ function updateGameState(data) {
     // 5. Render Fleet Dossier
     renderFleet(data.armada || []);
 
-    // 6. Render Transactions
+    // 6. Render Usaha Facilities
+    renderUsahaFacilities(data);
+
+    // 7. Render Transactions
     renderTransactions(data.transaksi || []);
 
-    // 7. Check Emergency Crisis
+    // 8. Check Emergency Crisis
     checkEmergencyCrisis(data.krisis);
+}
+
+function getTierLevel(kategori) {
+    if (!kategori) return 0;
+    const k = kategori.toUpperCase();
+    if (k === 'LCGC') return 0;
+    if (k === 'KELUARGA') return 1;
+    if (k === 'MEDIUM_SUV') return 2;
+    if (k === 'MEWAH_VIP') return 3;
+    return 1;
 }
 
 // Render Tab 1: Orders Queue
@@ -102,32 +131,18 @@ function renderOrders(orders, armada) {
 
         card.className = `order-card ${riskClass}`;
 
-        // Cari armada yang siap untuk kategori ini
-        const availableCars = armada.filter(c => c.kategori === o.kategori && c.status === 'SIAP');
-
-        let selectCarHtml = '';
-        if (availableCars.length > 0) {
-            selectCarHtml = `<select id="alloc-car-${o.id}" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:11.5px; font-weight:700;">`;
-            availableCars.forEach(c => {
-                selectCarHtml += `<option value="${c.plat}">${c.plat} - ${c.merk} (${formatRupiah(c.tarifHarian)}/hr)</option>`;
-            });
-            selectCarHtml += `</select>`;
-        } else {
-            selectCarHtml = `<span style="font-size:11px; color:var(--accent-red); font-weight:700;">⚠️ Unit ${o.kategori} Sedang Kosong</span>`;
-        }
-
         card.innerHTML = `
             <div class="order-header">
                 <div>
                     <div class="order-renter">${o.nama}</div>
-                    <div class="order-purpose">${o.keperluan} • Durasi: <strong>${o.durasiJam} Jam</strong></div>
+                    <div class="order-purpose">${o.keperluan} • Durasi: <strong>${o.durasiJam} Jam</strong> (Jadwal: Hari ${o.hariMulai}, ${String(o.jamMulai).padStart(2, '0')}:00 WIB)</div>
                 </div>
-                <span class="badge-rating" style="background:#f1f5f9; color:var(--text-secondary);">
-                    Kategori: ${o.kategori}
+                <span class="badge-rating" style="background:#f1f5f9; color:var(--text-secondary); font-size:11px;">
+                    Kelas: <strong>${o.kategori}</strong>
                 </span>
             </div>
 
-            <!-- Indonesian Risk Badges -->
+            <!-- Indonesian Risk Badges (Taploka Risk Screening) -->
             <div class="risk-tags">
                 <span class="risk-badge ${o.dokumenLengkap ? 'badge-safe' : 'badge-danger'}">
                     ${o.dokumenLengkap ? '✓ KTP + KK Lengkap' : '⚠️ Cuma KTP'}
@@ -141,24 +156,19 @@ function renderOrders(orders, armada) {
                 <span class="risk-badge ${o.blacklist ? 'badge-danger' : 'badge-safe'}">
                     ${o.blacklist ? '🚨 Tercatat di Grup Asosiasi' : '✓ Bersih Asosiasi'}
                 </span>
-                ${o.jaminan ? '<span class="risk-badge badge-safe">🛡️ Jaminan Ditahan</span>' : ''}
-                ${o.sopir ? '<span class="risk-badge badge-safe">👨✈️ Dengan Supir</span>' : ''}
+                ${o.jaminan ? '<span class="risk-badge badge-safe">🛡️ Jaminan Motor/Ijazah Ditahan</span>' : ''}
+                ${o.sopir ? '<span class="risk-badge badge-safe">👨✈️ Dengan Supir Resmi</span>' : ''}
                 <span class="risk-badge ${riskClass === 'high-risk' ? 'badge-danger' : (riskClass === 'medium-risk' ? 'badge-warning' : 'badge-safe')}">
                     Skor Risiko: ${o.skorRisiko}% (${o.tingkatBahaya})
                 </span>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:11px; font-weight:700; color:var(--text-secondary);">Pilih Armada:</span>
-                    ${selectCarHtml}
-                </div>
-
+            <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:12px; flex-wrap:wrap; gap:8px;">
                 <div class="order-actions">
-                    ${availableCars.length > 0 ? 
-                        `<button class="btn-action btn-accept" onclick="confirmAcceptOrder(${o.id})">✔️ Terima Sewa</button>` : 
-                        `<button class="btn-action" style="opacity:0.5; cursor:not-allowed;" disabled>Unit Habis</button>`
-                    }
+                    <!-- Tombol Terima MEMBUKA BOTTOM SHEET MODAL "PILIH UNIT" -->
+                    <button class="btn-action btn-accept" style="background:#eab308; color:#1e1b4b; font-weight:800; border:1px solid #ca8a04;" onclick="openPickCarModal(${o.id})">
+                        ✔ Terima
+                    </button>
                     ${!o.jaminan ? `<button class="btn-action btn-mitigate" onclick="actionMintaJaminan(${o.id})">✋ Minta Jaminan (-40% Risiko)</button>` : ''}
                     ${!o.sopir ? `<button class="btn-action btn-mitigate" onclick="actionTawarkanSopir(${o.id})">👨✈️ Tawarkan Supir (0% Risiko)</button>` : ''}
                     <button class="btn-action btn-reject" onclick="actionTolakPesanan(${o.id})">✖️ Tolak</button>
@@ -169,16 +179,176 @@ function renderOrders(orders, armada) {
     });
 }
 
-function confirmAcceptOrder(orderId) {
-    const select = document.getElementById('alloc-car-' + orderId);
-    if (!select || !select.value) {
-        showToastAlert('Pilih unit armada yang tersedia terlebih dahulu!', false);
-        return;
+// ==========================================================
+// TAPLOKA "PILIH UNIT" BOTTOM SHEET MODAL DISPATCH LOGIC
+// ==========================================================
+function getCarVectorSvg(kategori, color) {
+    const c = color || '#059669';
+    return `
+        <svg class="car-thumb-svg" viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="16" width="48" height="15" rx="4" fill="${c}" />
+            <path d="M16 16 L22 7 L42 7 L48 16 Z" fill="${c}" opacity="0.9" />
+            <rect x="23" y="9" width="8" height="6" rx="1.5" fill="#e2e8f0" />
+            <rect x="33" y="9" width="8" height="6" rx="1.5" fill="#e2e8f0" />
+            <circle cx="18" cy="31" r="5" fill="#1e293b" />
+            <circle cx="18" cy="31" r="2" fill="#94a3b8" />
+            <circle cx="46" cy="31" r="5" fill="#1e293b" />
+            <circle cx="46" cy="31" r="2" fill="#94a3b8" />
+        </svg>
+    `;
+}
+
+function openPickCarModal(orderId) {
+    if (!gameState || !gameState.pesanan) return;
+    const o = gameState.pesanan.find(x => x.id === orderId);
+    if (!o) return;
+
+    const modal = document.getElementById('sheet-pick-car');
+    const contextChip = document.getElementById('sheet-order-context');
+    const listContainer = document.getElementById('sheet-cars-list');
+
+    contextChip.innerHTML = `
+        <span>👤 <strong>${o.nama}</strong></span> • 
+        <span>Kelas Diminta: <strong>${o.kategori}</strong></span> • 
+        <span>Durasi: <strong>${o.durasiJam} Jam</strong></span> • 
+        <span>Jadwal: <strong>Hari ${o.hariMulai}, ${String(o.jamMulai).padStart(2,'0')}:00</strong></span>
+    `;
+
+    const currentDay = gameState.waktu ? gameState.waktu.hari : 1;
+    const currentHour = gameState.waktu ? gameState.waktu.jam : 0;
+    const currentAbsoluteHour = (currentDay - 1) * 24 + currentHour;
+
+    // View spans 7 days (168 hours) starting from current day
+    const s0 = (currentDay - 1) * 24;
+    const SPAN_HOURS = 168;
+
+    // Target order window
+    const reqStart = (o.hariMulai - 1) * 24 + o.jamMulai;
+    const washBuffer = gameState.wash ? 0 : 6; // Car wash in-house = 0 buffer
+    const reqEnd = reqStart + o.durasiJam + washBuffer;
+
+    const wantLeft = Math.max(0, ((reqStart - s0) / SPAN_HOURS) * 100);
+    const wantWidth = Math.max(2.5, ((reqEnd - reqStart) / SPAN_HOURS) * 100);
+
+    const orderTier = getTierLevel(o.kategori);
+
+    listContainer.innerHTML = '';
+
+    (gameState.armada || []).forEach(car => {
+        const carTier = getTierLevel(car.kategori);
+        const isUpgradeGratis = carTier > orderTier;
+        const isTierTooLow = carTier < orderTier;
+
+        // Collision Check: Find active bookings for this car
+        const carBookings = (gameState.sesiSewa || []).filter(b => b.plat === car.plat && !b.selesai && !b.kabur);
+        
+        let hasClash = false;
+        carBookings.forEach(b => {
+            const bStart = (b.hariMulai - 1) * 24 + b.jamMulai;
+            const bEnd = bStart + b.durasiJam + washBuffer;
+            if (reqStart < bEnd && bStart < reqEnd) {
+                hasClash = true;
+            }
+        });
+
+        // Current status check
+        if (car.status === 'DISEWA' && reqStart <= currentAbsoluteHour) {
+            hasClash = true;
+        }
+
+        const isUnavailable = car.status === 'HILANG' || car.kondisiMesin < 40 || isTierTooLow || hasClash;
+        const isOk = !isUnavailable;
+
+        // Render solid booking blocks on mini track
+        let bookingBlocksHtml = '';
+        carBookings.forEach(b => {
+            const bStart = (b.hariMulai - 1) * 24 + b.jamMulai;
+            const bEnd = bStart + b.durasiJam;
+            if (bEnd <= s0 || bStart >= s0 + SPAN_HOURS) return;
+
+            const a = Math.max(bStart, s0);
+            const z = Math.min(bEnd, s0 + SPAN_HOURS);
+            const leftPct = ((a - s0) / SPAN_HOURS) * 100;
+            const widthPct = Math.max(2, ((z - a) / SPAN_HOURS) * 100);
+
+            bookingBlocksHtml += `
+                <div class="track-blk solid" style="left:${leftPct}%; width:${widthPct}%;">
+                    ${b.penyewa}
+                </div>
+            `;
+        });
+
+        // Render requested slot (dashed rectangular outline)
+        const wantDashedHtml = `
+            <div class="track-blk want ${hasClash ? 'clash' : ''}" style="left:${wantLeft}%; width:${wantWidth}%;">
+                ${hasClash ? '✖ Bentrok' : 'Slot'}
+            </div>
+        `;
+
+        const row = document.createElement('div');
+        row.className = `car-pick-opt ${isOk ? 'clickable' : 'dis'}`;
+
+        let statusBadgeHtml = '';
+        if (car.status === 'HILANG') {
+            statusBadgeHtml = `<span class="badge-status-clash">🚨 Unit Hilang</span>`;
+        } else if (car.kondisiMesin < 40) {
+            statusBadgeHtml = `<span class="badge-status-clash">🔧 Wajib Servis</span>`;
+        } else if (isTierTooLow) {
+            statusBadgeHtml = `<span class="badge-status-clash">Kelas Kurang (${car.kategori})</span>`;
+        } else if (hasClash) {
+            statusBadgeHtml = `<span class="badge-status-clash">Bentrok jadwal</span>`;
+        } else {
+            statusBadgeHtml = `<span class="badge-status-free">Kosong</span>`;
+        }
+
+        row.innerHTML = `
+            <div class="car-thumb-box">
+                ${getCarVectorSvg(car.kategori, isOk ? '#059669' : '#94a3b8')}
+            </div>
+            <div class="car-pick-info">
+                <div class="car-pick-header">
+                    <span class="badge-plate">[ ${car.plat} ]</span>
+                    <span class="car-pick-title">${car.merk}</span>
+                    ${isUpgradeGratis ? `<span class="badge-upgrade">Upgrade gratis</span>` : ''}
+                </div>
+                <div class="car-pick-sub">
+                    ${statusBadgeHtml}
+                    <span>• Kondisi: <strong>${Math.round(car.kondisiMesin)}%</strong></span>
+                    <span>• ${formatRupiah(car.tarifHarian)}/hr</span>
+                    ${car.isBekas ? '<span style="color:#b45309; font-weight:700;">(Bekas)</span>' : ''}
+                </div>
+                <!-- Mini Timeline Track (Kotak Putus-Putus) -->
+                <div class="mini-track">
+                    ${bookingBlocksHtml}
+                    ${wantDashedHtml}
+                </div>
+            </div>
+        `;
+
+        if (isOk) {
+            row.onclick = () => confirmDispatchCar(o.id, car.plat);
+        }
+
+        listContainer.appendChild(row);
+    });
+
+    modal.classList.add('on');
+}
+
+function closePickCarModal() {
+    const modal = document.getElementById('sheet-pick-car');
+    if (modal) modal.classList.remove('on');
+}
+
+function confirmDispatchCar(orderId, plat) {
+    if (window.javaBridge) {
+        if (typeof window.javaBridge.konfirmasiSewa === 'function') {
+            window.javaBridge.konfirmasiSewa(orderId, plat);
+        } else if (typeof window.javaBridge.terimaPesanan === 'function') {
+            window.javaBridge.terimaPesanan(orderId, plat);
+        }
     }
-    const plat = select.value;
-    if (window.javaBridge && typeof window.javaBridge.terimaPesanan === 'function') {
-        window.javaBridge.terimaPesanan(orderId, plat);
-    }
+    closePickCarModal();
 }
 
 function actionMintaJaminan(orderId) {
@@ -331,6 +501,132 @@ function actionServis(plat) {
     }
 }
 
+// Render Tab 4: Usaha Facilities (Taploka Business Upgrades)
+function renderUsahaFacilities(data) {
+    if (!data) return;
+
+    // 1. Badan Hukum CV
+    const btnCv = document.getElementById('btn-upgrade-cv');
+    if (btnCv) {
+        if (data.cv) {
+            btnCv.textContent = '✓ Badan Usaha CV Aktif';
+            btnCv.disabled = true;
+            btnCv.style.opacity = '0.7';
+            btnCv.style.background = '#059669';
+        } else {
+            btnCv.textContent = 'Daftarkan CV (Rp 15jt)';
+            btnCv.disabled = false;
+            btnCv.style.opacity = '1';
+        }
+    }
+
+    // 2. Keanggotaan Asosiasi Rental
+    const btnAsos = document.getElementById('btn-upgrade-asos');
+    if (btnAsos) {
+        if (data.asos) {
+            btnAsos.textContent = '✓ Anggota Asosiasi (Akses Blacklist)';
+            btnAsos.disabled = true;
+            btnAsos.style.opacity = '0.7';
+            btnAsos.style.background = '#059669';
+        } else {
+            btnAsos.textContent = 'Gabung Asosiasi (Rp 5jt)';
+            btnAsos.disabled = false;
+            btnAsos.style.opacity = '1';
+        }
+    }
+
+    // 3. Bengkel & Mekanik In-House
+    const btnMech = document.getElementById('btn-upgrade-mech');
+    if (btnMech) {
+        if (data.mech) {
+            btnMech.textContent = '✓ Bengkel Aktif (Diskon Servis 50%)';
+            btnMech.disabled = true;
+            btnMech.style.opacity = '0.7';
+            btnMech.style.background = '#059669';
+        } else {
+            btnMech.textContent = 'Buka Bengkel (Rp 8jt)';
+            btnMech.disabled = false;
+            btnMech.style.opacity = '1';
+        }
+    }
+
+    // 4. Cuci Mobil & Detailing In-House
+    const btnWash = document.getElementById('btn-upgrade-wash');
+    if (btnWash) {
+        if (data.wash) {
+            btnWash.textContent = '✓ Car Wash Aktif (Turnaround Cepat)';
+            btnWash.disabled = true;
+            btnWash.style.opacity = '0.7';
+            btnWash.style.background = '#059669';
+        } else {
+            btnWash.textContent = 'Pasang Car Wash (Rp 6jt)';
+            btnWash.disabled = false;
+            btnWash.style.opacity = '1';
+        }
+    }
+
+    // 5. Iklan Digital
+    const btnIklan = document.getElementById('btn-upgrade-iklan');
+    const descIklan = document.getElementById('desc-iklan');
+    const biayaIklan = [0, 3000000, 10000000, 35000000];
+    if (btnIklan) {
+        const lvl = data.iklan || 0;
+        if (lvl >= 3) {
+            btnIklan.textContent = '✓ Iklan Level Max (3)';
+            btnIklan.disabled = true;
+            btnIklan.style.opacity = '0.7';
+            btnIklan.style.background = '#059669';
+            if (descIklan) descIklan.textContent = 'Kampanye iklan digital maksimal (Order 1.65x)';
+        } else {
+            const nextLvl = lvl + 1;
+            btnIklan.textContent = `Upgrade ke Level ${nextLvl} (${formatRupiah(biayaIklan[nextLvl])})`;
+            btnIklan.disabled = false;
+            btnIklan.style.opacity = '1';
+            if (descIklan) descIklan.textContent = `Level saat ini: ${lvl} • Naikkan ke level ${nextLvl} untuk melipatgandakan pelanggan`;
+        }
+    }
+}
+
+function actionUpgradeCV() {
+    if (confirm("Daftarkan Badan Hukum CV Rental Resmi seharga Rp 15.000.000?")) {
+        if (window.javaBridge && typeof window.javaBridge.upgradeCV === 'function') {
+            window.javaBridge.upgradeCV();
+        }
+    }
+}
+
+function actionUpgradeAsosiasi() {
+    if (confirm("Gabung Asosiasi Rental Indonesia seharga Rp 5.000.000 untuk verifikasi blacklist pelanggan?")) {
+        if (window.javaBridge && typeof window.javaBridge.upgradeAsosiasi === 'function') {
+            window.javaBridge.upgradeAsosiasi();
+        }
+    }
+}
+
+function actionUpgradeBengkel() {
+    if (confirm("Bangun bengkel & sediakan mekanik in-house seharga Rp 8.000.000 (Dapatkan diskon biaya servis 50%)?")) {
+        if (window.javaBridge && typeof window.javaBridge.upgradeBengkel === 'function') {
+            window.javaBridge.upgradeBengkel();
+        }
+    }
+}
+
+function actionUpgradeCarWash() {
+    if (confirm("Bangun fasilitas cuci mobil & detailing in-house seharga Rp 6.000.000 (Turnaround mobil instan tanpa antri cuci luar)?")) {
+        if (window.javaBridge && typeof window.javaBridge.upgradeCarWash === 'function') {
+            window.javaBridge.upgradeCarWash();
+        }
+    }
+}
+
+function actionUpgradeIklan() {
+    if (confirm("Tingkatkan level kampanye iklan digital Anda?")) {
+        if (window.javaBridge && typeof window.javaBridge.upgradeIklan === 'function') {
+            window.javaBridge.upgradeIklan();
+        }
+    }
+}
+
 // Render Tab 4: Transactions
 function renderTransactions(transaksi) {
     const container = document.getElementById('transaksi-list-container');
@@ -429,16 +725,47 @@ function closeBeliModal() {
 function updateBeliPreset() {
     const kat = document.getElementById('beli-kategori').value;
     const merkInput = document.getElementById('beli-merk');
-    if (kat === 'LCGC') merkInput.value = 'Daihatsu Sigra 1.2 R';
-    else if (kat === 'KELUARGA') merkInput.value = 'Toyota All New Avanza';
-    else if (kat === 'MEDIUM_SUV') merkInput.value = 'Toyota Innova Reborn Diesel';
-    else if (kat === 'MEWAH_VIP') merkInput.value = 'Toyota Alphard VIP Luxury';
+    const isBekas = document.querySelector('input[name="beli-tipe"]:checked')?.value === 'bekas';
+
+    let baseMerk = 'Toyota All New Avanza';
+    let harga = 265000000;
+    let tarif = 550000;
+
+    if (kat === 'LCGC') {
+        baseMerk = 'Daihatsu Sigra 1.2 R';
+        harga = 145000000;
+        tarif = 350000;
+    } else if (kat === 'MEDIUM_SUV') {
+        baseMerk = 'Toyota Innova Reborn Diesel';
+        harga = 460000000;
+        tarif = 900000;
+    } else if (kat === 'MEWAH_VIP') {
+        baseMerk = 'Toyota Alphard VIP Luxury';
+        harga = 1400000000;
+        tarif = 2800000;
+    }
+
+    if (isBekas) {
+        merkInput.value = baseMerk + ' (Bekas)';
+        const hargaBekas = harga * 0.60;
+        const preview = document.getElementById('beli-price-preview');
+        if (preview) {
+            preview.innerHTML = `Harga Beli Bursa Bekas (Diskon 60%): <strong>${formatRupiah(hargaBekas)}</strong> (Kondisi 72%)`;
+        }
+    } else {
+        merkInput.value = baseMerk;
+        const preview = document.getElementById('beli-price-preview');
+        if (preview) {
+            preview.innerHTML = `Harga Beli Unit Baru (100% Mulus): <strong>${formatRupiah(harga)}</strong>`;
+        }
+    }
 }
 
 function submitBeliMobil() {
     const kat = document.getElementById('beli-kategori').value;
     const plat = document.getElementById('beli-plat').value.trim();
     const merk = document.getElementById('beli-merk').value.trim();
+    const isBekas = document.querySelector('input[name="beli-tipe"]:checked')?.value === 'bekas';
 
     if (!plat || !merk) {
         showToastAlert('Plat nomor dan merk kendaraan wajib diisi!', false);
@@ -452,7 +779,12 @@ function submitBeliMobil() {
     else if (kat === 'MEWAH_VIP') { harga = 1400000000; tarif = 2800000; }
 
     if (window.javaBridge) {
-        window.javaBridge.beliMobil(kat, plat, merk, harga, tarif);
+        if (isBekas && typeof window.javaBridge.beliMobilBekas === 'function') {
+            window.javaBridge.beliMobilBekas(kat, plat, merk, harga, tarif);
+        } else {
+            window.javaBridge.beliMobil(kat, plat, merk, harga, tarif);
+        }
         closeBeliModal();
     }
 }
+

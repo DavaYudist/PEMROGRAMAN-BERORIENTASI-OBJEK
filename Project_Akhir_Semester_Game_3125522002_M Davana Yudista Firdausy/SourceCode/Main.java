@@ -124,13 +124,102 @@ public class Main extends Application {
             return rental.getGameStateJson();
         }
 
-        public void terimaPesanan(long id, String plat) {
+        public void konfirmasiSewa(long id, String plat) {
             Platform.runLater(() -> {
                 try {
-                    rental.getManajerPesanan().terimaPesanan(id, plat, rental.getWaktu(), rental.getKas(), rental);
+                    rental.konfirmasiSewaDenganUnit(id, plat);
+                    showToast("Unit " + plat + " berhasil dialokasikan!", true);
                     pushGameState();
                 } catch (Exception e) {
-                    showToast("Gagal menerima pesanan: " + e.getMessage(), false);
+                    showToast("Gagal alokasi unit: " + e.getMessage(), false);
+                }
+            });
+        }
+
+        public void konfirmasiSewa(String id, String plat) {
+            try {
+                konfirmasiSewa(Long.parseLong(id.trim()), plat);
+            } catch (Exception e) {
+                showToast("ID pesanan tidak valid: " + id, false);
+            }
+        }
+
+        public void terimaPesanan(long id, String plat) {
+            konfirmasiSewa(id, plat);
+        }
+
+        public void terimaPesanan(String id, String plat) {
+            konfirmasiSewa(id, plat);
+        }
+
+        public void upgradeCV() {
+            Platform.runLater(() -> {
+                try {
+                    rental.upgradeBadanUsahaCV();
+                    showToast("Badan Usaha CV Rental Resmi berhasil didirikan!", true);
+                    pushGameState();
+                } catch (Exception e) {
+                    showToast("Gagal upgrade CV: " + e.getMessage(), false);
+                }
+            });
+        }
+
+        public void upgradeAsosiasi() {
+            Platform.runLater(() -> {
+                try {
+                    rental.upgradeMemberAsosiasi();
+                    showToast("Terdaftar sebagai Member Resmi Asosiasi Rental Indonesia!", true);
+                    pushGameState();
+                } catch (Exception e) {
+                    showToast("Gagal daftar asosiasi: " + e.getMessage(), false);
+                }
+            });
+        }
+
+        public void upgradeBengkel() {
+            Platform.runLater(() -> {
+                try {
+                    rental.upgradeBengkelMekanik();
+                    showToast("Bengkel & Mekanik In-House aktif! Diskon biaya servis 50%.", true);
+                    pushGameState();
+                } catch (Exception e) {
+                    showToast("Gagal bangun bengkel: " + e.getMessage(), false);
+                }
+            });
+        }
+
+        public void upgradeCarWash() {
+            Platform.runLater(() -> {
+                try {
+                    rental.upgradeCarWash();
+                    showToast("Fasilitas Cuci Mobil & Detailing In-House aktif! Turnaround armada instan.", true);
+                    pushGameState();
+                } catch (Exception e) {
+                    showToast("Gagal bangun car wash: " + e.getMessage(), false);
+                }
+            });
+        }
+
+        public void upgradeIklan() {
+            Platform.runLater(() -> {
+                try {
+                    rental.upgradeIklanDigital();
+                    showToast("Kampanye Iklan Digital dinaikkan ke Level " + rental.getLevelIklan() + "!", true);
+                    pushGameState();
+                } catch (Exception e) {
+                    showToast("Gagal pasang iklan: " + e.getMessage(), false);
+                }
+            });
+        }
+
+        public void beliMobilBekas(String kategori, String plat, String merk, double harga, double tarif) {
+            Platform.runLater(() -> {
+                try {
+                    rental.beliMobilBekas(kategori, plat, merk, harga, tarif);
+                    showToast("Sukses membeli unit bursa bekas " + merk + " [" + plat + "]!", true);
+                    pushGameState();
+                } catch (Exception e) {
+                    showToast("Pembelian unit bekas gagal: " + e.getMessage(), false);
                 }
             });
         }
@@ -314,3 +403,4 @@ public class Main extends Application {
         launch(args);
     }
 }
+
