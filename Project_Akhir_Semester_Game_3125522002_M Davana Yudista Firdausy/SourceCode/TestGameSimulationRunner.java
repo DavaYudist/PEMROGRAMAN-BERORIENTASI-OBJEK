@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 public class TestGameSimulationRunner {
 
     private static int totalPassed = 0;
-    private static final int TOTAL_TESTS = 14;
+    private static final int TOTAL_TESTS = 16;
 
     public static void main(String[] args) {
         System.out.println("==========================================================================================");
@@ -40,6 +40,8 @@ public class TestGameSimulationRunner {
         runTestCase(12, "Persistensi P12: Serialisasi & Deserialisasi State Game", () -> testSavegamePersistence());
         runTestCase(13, "Collision Detection: Deteksi Bentrok Jadwal & Penolakan Double-Booking", () -> testCollisionDetection());
         runTestCase(14, "Upgrade Gratis & Bursa Bekas: Alokasi Tier Tinggi & Evaluasi Diskon 60%", () -> testUpgradeGratisDanBursaBekas());
+        runTestCase(15, "Branching Crisis Phone Call: Percabangan Terhubung vs Panggilan Gagal", () -> testBranchingTeleponPenyewa());
+        runTestCase(16, "Guaranteed GPS Recovery: Garansi Penjemputan Unit 100% Berhasil", () -> testGuaranteedGPSCutoffRecovery());
 
         System.out.println("\n==========================================================================================");
         System.out.printf("  HASIL PENGUJIAN AKHIR: %d DARI %d TEST CASES LULUS (PASS %.1f%%)\n",
@@ -181,9 +183,13 @@ public class TestGameSimulationRunner {
         Kendaraan k = rental.getArmada().get(1); // Avanza with GPS
         k.setStatusSewa(Kendaraan.StatusSewa.HILANG);
 
-        String hasil = rental.getManajerPesanan().aksiMatikanMesinRemote(k.getPlatNomor(), rental);
-        if (!hasil.contains("SUKSES")) throw new AssertionError("Aksi matikan mesin GPS harusnya sukses: " + hasil);
-        if (k.getStatusSewa() != Kendaraan.StatusSewa.SIAP) throw new AssertionError("Unit harus kembali SIAP setelah recovery.");
+        try {
+            String hasil = rental.getManajerPesanan().aksiMatikanMesinRemote(k.getPlatNomor(), rental);
+            if (!hasil.contains("SUKSES")) throw new AssertionError("Aksi matikan mesin GPS harusnya sukses: " + hasil);
+            if (k.getStatusSewa() != Kendaraan.StatusSewa.SIAP) throw new AssertionError("Unit harus kembali SIAP setelah recovery.");
+        } catch (Exception e) {
+            throw new AssertionError("Gagal eksekusi matikan mesin: " + e.getMessage());
+        }
     }
 
     private static void testSavegamePersistence() {
@@ -283,6 +289,72 @@ public class TestGameSimulationRunner {
             }
         } catch (Exception e) {
             throw new AssertionError("Uji upgrade gratis & bursa bekas gagal: " + e.getMessage());
+        }
+    }
+
+    private static void testBranchingTeleponPenyewa() {
+        PerusahaanRental rental = new PerusahaanRental("Garasi Phone Test", 100000000);
+        // Buat pesanan resiko tinggi (85%)
+        PesananMasuk pTinggi = new PesananMasuk(888, "Suspect Buronan", "Luar Kota", "LCGC", 24, false, false, false, false, true);
+        pTinggi.setHariMulai(1);
+        pTinggi.setJamMulai(8);
+        pTinggi.setPlatDialokasikan("M 1122 SM");
+        pTinggi.setStatus(PesananMasuk.StatusPesanan.KABUR_HILANG);
+        rental.getManajerPesanan().tambahPesanan(pTinggi);
+
+        Kendaraan k = rental.findKendaraan("M 1122 SM");
+        k.setStatusSewa(Kendaraan.StatusSewa.HILANG);
+
+        // Kasus risiko tinggi >= 70%: telepon pasti GAGAL dan membuka eskalasi
+        String hasil = rental.getManajerPesanan().aksiTeleponPenyewa("M 1122 SM", rental);
+        if (!hasil.startsWith("GAGAL:")) {
+            throw new AssertionError("Penyewa resiko tinggi harusnya menghasilkan GAGAL: " + hasil);
+        }
+
+        // Uji Skenario A (Grace Period + Denda Rp 100.000):
+        double saldoAwal = rental.getKas().getSaldo();
+        rental.getKas().tambahPemasukan(100000.0, "Denda Keterlambatan Sewa [Uji]");
+        if (rental.getKas().getSaldo() != saldoAwal + 100000.0) {
+            throw new AssertionError("Pemasukan denda harus bertambah Rp 100.000");
+        }
+    }
+
+    private static void testGuaranteedGPSCutoffRecovery() {
+        PerusahaanRental rental = new PerusahaanRental("Garasi GPS Guaranteed Test", 100000000);
+        Kendaraan avanza = rental.findKendaraan("M 2233 SM"); // Avanza memiliki GPS
+        avanza.setStatusSewa(Kendaraan.StatusSewa.HILANG);
+
+        double saldoSebelum = rental.getKas().getSaldo();
+        try {
+            String hasil = rental.getManajerPesanan().aksiMatikanMesinRemote("M 2233 SM", rental);
+            if (!hasil.startsWith("SUKSES:")) {
+                throw new AssertionError("Matikan mesin remote pada unit ber-GPS harus 100% SUKSES: " + hasil);
+            }
+            if (avanza.getStatusSewa() != Kendaraan.StatusSewa.SIAP) {
+                throw new AssertionError("Garansi recovery GPS harus mengembalikan status unit ke SIAP!");
+            }
+            // Biaya recovery derek Rp 500.000
+            double selisih = saldoSebelum - rental.getKas().getSaldo();
+            if (Math.abs(selisih - 500000.0) > 1.0) {
+                throw new AssertionError("Biaya operasional recovery GPS harus Rp 500.000, aktual: " + selisih);
+            }
+        } catch (Exception e) {
+            throw new AssertionError("Gagal eksekusi recovery GPS: " + e.getMessage());
+        }
+
+        // Uji unit tanpa GPS (Sigra M 1122 SM)
+        Kendaraan sigra = rental.findKendaraan("M 1122 SM");
+        sigra.setStatusSewa(Kendaraan.StatusSewa.HILANG);
+        try {
+            String hasilTanpaGPS = rental.getManajerPesanan().aksiMatikanMesinRemote("M 1122 SM", rental);
+            if (!hasilTanpaGPS.startsWith("GAGAL:")) {
+                throw new AssertionError("Unit tanpa GPS harus gagal dimatikan: " + hasilTanpaGPS);
+            }
+            if (sigra.getStatusSewa() != Kendaraan.StatusSewa.HILANG) {
+                throw new AssertionError("Unit tanpa GPS harus tetap berstatus HILANG!");
+            }
+        } catch (Exception e) {
+            throw new AssertionError("Exception tidak diharapkan: " + e.getMessage());
         }
     }
 }

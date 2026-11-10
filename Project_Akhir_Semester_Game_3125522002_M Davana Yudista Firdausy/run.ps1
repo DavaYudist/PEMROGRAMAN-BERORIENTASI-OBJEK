@@ -34,14 +34,14 @@ Write-Host "Kompilasi Berhasil (0 Error)!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Pilih Mode Eksekusi:" -ForegroundColor Cyan
 Write-Host "  [1] Buka Antarmuka Game Tycoon (Desktop WebKit - Green White)"
-Write-Host "  [2] Jalankan Test Regression Otomatis (14 Skenario P1-P15)"
+Write-Host "  [2] Jalankan Test Regression Otomatis (16 Skenario P1-P15)"
 Write-Host ""
 
 $mode = Read-Host "Masukkan pilihan [1/2, default 1]"
 if ([string]::IsNullOrWhiteSpace($mode)) { $mode = "1" }
 
 if ($mode -eq "2") {
-    Write-Host "Menjalankan Suite Uji Regresi Otomatis (14 Kasus Uji P1-P15)..." -ForegroundColor Yellow
+    Write-Host "Menjalankan Suite Uji Regresi Otomatis (16 Kasus Uji P1-P15)..." -ForegroundColor Yellow
     java -cp "$BIN_DIR;$MYSQL_JAR;." SourceCode.TestGameSimulationRunner
 } else {
     Write-Host "Membuka antarmuka web game simulasi (-Dprism.order=sw)..." -ForegroundColor Green

@@ -24,21 +24,26 @@ public class ManajerPesanan implements Serializable {
         public final String plat;
         public final String penyewa;
         public final String pesan;
+        public final int skorRisiko;
         public final boolean butuhTindakan;
         public String hasilTindakan;
+        public String tahap; // "AWAL", "TERHUBUNG", "ESKALASI"
 
-        public EventKrisis(String plat, String penyewa, String pesan, boolean butuhTindakan) {
+        public EventKrisis(String plat, String penyewa, String pesan, int skorRisiko, boolean butuhTindakan) {
             this.plat = plat;
             this.penyewa = penyewa;
             this.pesan = pesan;
+            this.skorRisiko = skorRisiko;
             this.butuhTindakan = butuhTindakan;
             this.hasilTindakan = "";
+            this.tahap = "AWAL";
         }
 
         public String toJson() {
             return String.format(Locale.US,
-                "{\"plat\":\"%s\",\"penyewa\":\"%s\",\"pesan\":\"%s\",\"butuhTindakan\":%b,\"hasil\":\"%s\"}",
-                plat, penyewa.replace("\"", "\\\""), pesan.replace("\"", "\\\""), butuhTindakan, hasilTindakan.replace("\"", "\\\""));
+                "{\"plat\":\"%s\",\"penyewa\":\"%s\",\"pesan\":\"%s\",\"skorRisiko\":%d,\"butuhTindakan\":%b,\"hasil\":\"%s\",\"tahap\":\"%s\"}",
+                plat, penyewa.replace("\"", "\\\""), pesan.replace("\"", "\\\""), skorRisiko, butuhTindakan,
+                hasilTindakan.replace("\"", "\\\""), tahap);
         }
     }
 
@@ -278,7 +283,7 @@ public class ManajerPesanan implements Serializable {
                     String pesan = String.format("PERINGATAN KRISIS! Mobil %s [%s] tidak kembali dan dicurigai digelapkan oleh %s (Skor Risiko: %d)!",
                             k.getMerk(), k.getPlatNomor(), sesi.getNamaPenyewa(), risiko);
 
-                    EventKrisis krisis = new EventKrisis(k.getPlatNomor(), sesi.getNamaPenyewa(), pesan, true);
+                    EventKrisis krisis = new EventKrisis(k.getPlatNomor(), sesi.getNamaPenyewa(), pesan, risiko, true);
                     this.krisisAktif = krisis;
                     this.riwayatKrisis.add(krisis);
 
@@ -297,86 +302,185 @@ public class ManajerPesanan implements Serializable {
     }
 
     // ==========================================================
-    // 5 OPSI TINDAKAN RESOLUSI KRISIS PENGGELAPAN MOBIL
+    // TINDAKAN RESOLUSI KRISIS & BRANCHING ENGINE (SUB-AGENT 1)
     // ==========================================================
 
-    public synchronized String aksiTeleponPenyewa(String plat) {
-        return "Hasil Panggilan: 'Nomor yang Anda tuju sedang dialihkan atau tidak dapat menerima panggilan.' Kontak penyewa sengaja dimatikan!";
-    }
-
-    public synchronized String aksiMatikanMesinRemote(String plat, PerusahaanRental rental) {
+    /**
+     * Skenario Percabangan 1: Telepon Nomor Penyewa.
+     * Evaluasi skor risiko:
+     * - Skenario A (45% peluang jika risiko < 70%): Panggilan terjawab & kooperatif, berikan toleransi (grace period), denda keterlambatan +Rp 100.000, batalkan krisis.
+     * - Skenario B (55% base atau 100% jika risiko >= 70%): Nomor tidak aktif, eskalasi ke tindakan darurat lanjutan.
+     */
+    public synchronized String aksiTeleponPenyewa(String plat, PerusahaanRental rental) {
         Kendaraan k = rental.findKendaraan(plat);
-        if (k == null) return "Armada tidak ditemukan.";
-
-        if (!k.isGPSInstalled()) {
-            return "GAGAL! Armada " + plat + " belum dipasangi modul GPS Tracker & Remote Immobilizer. Mesin tidak bisa dimatikan dari jauh!";
+        PesananMasuk refPesanan = null;
+        for (PesananMasuk p : antrianPesanan) {
+            if (p.getPlatDialokasikan().equalsIgnoreCase(plat) && (p.getStatus() == PesananMasuk.StatusPesanan.KABUR_HILANG || p.getStatus() == PesananMasuk.StatusPesanan.DISEWA)) {
+                refPesanan = p;
+                break;
+            }
         }
 
-        boolean sukses = k.matikanMesinRemote();
-        if (sukses) {
-            k.setStatusSewa(Kendaraan.StatusSewa.SIAP);
-            k.setPenyewaSaatIni("-");
-            if (krisisAktif != null && krisisAktif.plat.equals(plat)) {
-                krisisAktif.hasilTindakan = "SUKSES! Mesin berhasil dimatikan secara remote. Tim recovery berhasil mengamankan kembali unit " + plat + "!";
+        int risiko = (refPesanan != null) ? refPesanan.hitungSkorRisiko() : (krisisAktif != null ? krisisAktif.skorRisiko : 50);
+        String namaPenyewa = (refPesanan != null) ? refPesanan.getNamaPenyewa() : (krisisAktif != null ? krisisAktif.penyewa : "Penyewa");
+
+        // Scenario A: Panggilan Terhubung & Konfirmasi Lokasi (45% chance jika risk < 70%)
+        boolean isAnswered = (risiko < 70) && (random.nextDouble() < 0.45);
+
+        if (isAnswered) {
+            String pesan = String.format("📞 Panggilan Terhubung! Penyewa (%s) kooperatif: 'Maaf Mas, ban bocor di Arosbaya, sedang dalam perjalanan pulang (estimasi 2 jam lagi).'", namaPenyewa);
+            // Tambahkan denda keterlambatan Rp 100.000 ke kas perusahaan
+            rental.getKas().tambahPemasukan(100000.0, "Denda Keterlambatan Sewa [" + plat + "] - " + namaPenyewa);
+            if (k != null) {
+                k.setStatusSewa(Kendaraan.StatusSewa.SIAP);
+                k.setPenyewaSaatIni("-");
+                k.kurangiKondisi(3.0);
+            }
+            for (SesiSewa s : daftarSesiSewa) {
+                if (s.getPlatNomor().equalsIgnoreCase(plat) && !s.isSelesai()) {
+                    s.setSelesai(true);
+                    s.setDibawaKabur(false);
+                }
+            }
+            if (refPesanan != null) {
+                refPesanan.setStatus(PesananMasuk.StatusPesanan.SELESAI);
+            }
+            if (krisisAktif != null && krisisAktif.plat.equalsIgnoreCase(plat)) {
+                krisisAktif.tahap = "TERHUBUNG";
+                krisisAktif.hasilTindakan = pesan;
                 krisisAktif = null;
             }
-            return "SUKSES BESAR! Relai pemutus arus mesin aktif. Mobil mogok di tepi jalan dan berhasil ditarik kembali ke garasi!";
+            return "TERHUBUNG:" + pesan;
+        } else {
+            // Scenario B: Nomor Tidak Aktif / Dialihkan (Indikasi Penggelapan)
+            String pesan = "⚠️ Panggilan Gagal! Nomor dialihkan atau tidak aktif. Indikasi kuat penggelapan unit! Silakan gunakan tindakan eskalasi di bawah.";
+            if (krisisAktif != null && krisisAktif.plat.equalsIgnoreCase(plat)) {
+                krisisAktif.tahap = "ESKALASI";
+                krisisAktif.hasilTindakan = pesan;
+            }
+            return "GAGAL:" + pesan;
         }
-        return "Gagal mengirim sinyal telemetri remote.";
+    }
+
+    public synchronized String aksiTeleponPenyewa(String plat) {
+        return "⚠️ Panggilan Gagal! Nomor dialihkan atau tidak aktif. Indikasi penggelapan unit!";
+    }
+
+    /**
+     * Skenario Percabangan 2: Matikan Mesin Remote & Kirim Tim Penjemput (Wajib GPS).
+     * Jika GPS terpasang: 100% GARANSI UNIT KEMBALI dengan potongan biaya operasional tim Rp 500.000.
+     */
+    public synchronized String aksiMatikanMesinRemote(String plat, PerusahaanRental rental)
+            throws SaldoKasTidakCukupException {
+        Kendaraan k = rental.findKendaraan(plat);
+        if (k == null) return "GAGAL:Armada tidak ditemukan.";
+
+        if (!k.isGPSInstalled()) {
+            return "GAGAL:Gagal! Modul GPS Tracker belum terpasang pada unit ini. Pasang modul GPS di menu Usaha!";
+        }
+
+        // 1. Eksekusi remote engine cutoff contract
+        k.matikanMesinRemote();
+
+        // 2. Dispatch recovery towing & driver crew (deducts Rp 500.000)
+        rental.getKas().kurangiPengeluaran(500000.0, "Biaya Operasional Tim Recovery & Derek GPS [" + plat + "]");
+
+        // 3. Guaranteed recovery: unit kembali ke garasi
+        k.setStatusSewa(Kendaraan.StatusSewa.SIAP);
+        k.setPenyewaSaatIni("-");
+        k.kurangiKondisi(5.0); // Minor wear
+        k.hidupkanMesinRemote(); // Reset relai agar siap disewakan kembali
+
+        for (SesiSewa s : daftarSesiSewa) {
+            if (s.getPlatNomor().equalsIgnoreCase(plat) && !s.isSelesai()) {
+                s.setSelesai(true);
+                s.setDibawaKabur(false);
+            }
+        }
+        for (PesananMasuk p : antrianPesanan) {
+            if (p.getPlatDialokasikan().equalsIgnoreCase(plat) && p.getStatus() == PesananMasuk.StatusPesanan.KABUR_HILANG) {
+                p.setStatus(PesananMasuk.StatusPesanan.SELESAI);
+            }
+        }
+
+        String hasil = String.format("SUKSES:✅ Relai Pemutus Arus Aktif! Mesin mati total di koordinat GPS terakhir (%.6f, %.6f). Tim penjemput berhasil mengamankan kembali unit %s [%s] ke garasi!",
+                k.getLatitude(), k.getLongitude(), k.getMerk(), plat);
+
+        if (krisisAktif != null && krisisAktif.plat.equalsIgnoreCase(plat)) {
+            krisisAktif.hasilTindakan = hasil;
+            krisisAktif = null;
+        }
+
+        return hasil;
     }
 
     public synchronized String aksiLaporPolisi(String plat, KasPerusahaan kas, PerusahaanRental rental)
             throws SaldoKasTidakCukupException {
-        double biayaPolisi = 5000000.0; // Biaya operasional penyelidikan & laporan
+        double biayaPolisi = 5000000.0; // Biaya operasional penyelidikan & laporan BAP
         kas.kurangiPengeluaran(biayaPolisi, "Biaya Laporan & Penyelidikan Polisi [Unit " + plat + "]");
 
         Kendaraan k = rental.findKendaraan(plat);
-        boolean berhasilDitemukan = random.nextDouble() < 0.35; // 35% sukses, 65% gagal/pungli
+        boolean berhasilDitemukan = random.nextDouble() < 0.35; // 35% sukses, 65% gagal/mandek
 
         if (berhasilDitemukan && k != null) {
             k.setStatusSewa(Kendaraan.StatusSewa.SIAP);
             k.setPenyewaSaatIni("-");
-            if (krisisAktif != null && krisisAktif.plat.equals(plat)) {
+            for (SesiSewa s : daftarSesiSewa) {
+                if (s.getPlatNomor().equalsIgnoreCase(plat)) s.setSelesai(true);
+            }
+            if (krisisAktif != null && krisisAktif.plat.equalsIgnoreCase(plat)) {
                 krisisAktif.hasilTindakan = "Polisi berhasil menemukan mobil di gudang penadah. Unit dikembalikan ke garasi.";
                 krisisAktif = null;
             }
-            return "ALHAMDULILLAH! Tim kepolisian berhasil menggerebek lokasi sindikat dan mengembalikan unit " + plat + "!";
+            return "SUKSES:ALHAMDULILLAH! Tim kepolisian berhasil menggerebek lokasi sindikat dan mengembalikan unit " + plat + "!";
         } else {
-            return "KECEWA! Setelah bayar biaya administrasi Rp 5.000.000, penyelidikan polisi nihil / lamban. Mobil masih belum ditemukan.";
+            return "GAGAL:KECEWA! Setelah bayar biaya administrasi Rp 5.000.000, penyelidikan polisi nihil / lamban. Mobil masih belum ditemukan.";
         }
     }
 
     public synchronized String aksiByOneAkamsi(String plat, KasPerusahaan kas, PerusahaanRental rental)
             throws SaldoKasTidakCukupException {
         Kendaraan k = rental.findKendaraan(plat);
-        boolean suksesNego = random.nextDouble() < 0.65; // 65% unit didapat
+        boolean suksesNego = random.nextDouble() < 0.65; // 65% sukses negosiasi
 
         if (suksesNego && k != null) {
-            double biayaTebusan = 2500000.0; // Uang rokok / mediasi ormas akamsi
+            double biayaTebusan = 2500000.0; // Uang rokok & mediasi ormas akamsi
             kas.kurangiPengeluaran(biayaTebusan, "Biaya Mediasi & Recovery Akamsi [Unit " + plat + "]");
             k.setStatusSewa(Kendaraan.StatusSewa.SIAP);
             k.setPenyewaSaatIni("-");
-            if (krisisAktif != null && krisisAktif.plat.equals(plat)) {
+            for (SesiSewa s : daftarSesiSewa) {
+                if (s.getPlatNomor().equalsIgnoreCase(plat)) s.setSelesai(true);
+            }
+            if (krisisAktif != null && krisisAktif.plat.equalsIgnoreCase(plat)) {
                 krisisAktif.hasilTindakan = "Unit berhasil ditarik paksa dari penadah dengan uang tebusan damai Rp 2.500.000.";
                 krisisAktif = null;
             }
-            return "NEGO BERHASIL! Tim ormas & akamsi berhasil mengamankan kunci mobil. Anda membayar tebusan damai Rp 2.500.000.";
+            return "SUKSES:NEGO BERHASIL! Tim ormas & akamsi berhasil mengamankan kunci mobil. Anda membayar tebusan damai Rp 2.500.000.";
         } else {
             double biayaMedis = 1000000.0;
             kas.kurangiPengeluaran(biayaMedis, "Biaya Medis & Pengamanan Bentrok Akamsi");
-            return "GAGAL & RICUH! Terjadi percekcokan di lokasi penadah. Tim recovery mundur untuk keselamatan. Mobil belum bisa diambil!";
+            return "GAGAL:GAGAL & RICUH! Terjadi percekcokan di lokasi penadah. Unit dipindahkan ke lokasi tak dikenal!";
         }
     }
 
     public synchronized String aksiIkhlas(String plat, PerusahaanRental rental) {
         Kendaraan k = rental.findKendaraan(plat);
         if (k != null) {
+            try {
+                rental.getKas().kurangiPengeluaran(0, "Write-off Kerugian Total Penggelapan Unit " + plat + " (" + k.getMerk() + ")");
+            } catch (SaldoKasTidakCukupException ignored) {}
             rental.hapusKendaraan(plat);
-            if (krisisAktif != null && krisisAktif.plat.equals(plat)) {
+            for (SesiSewa s : daftarSesiSewa) {
+                if (s.getPlatNomor().equalsIgnoreCase(plat)) {
+                    s.setSelesai(true);
+                    s.setDibawaKabur(true);
+                }
+            }
+            if (krisisAktif != null && krisisAktif.plat.equalsIgnoreCase(plat)) {
                 krisisAktif.hasilTindakan = "Unit " + plat + " resmi dihapus dari pembukuan (Total Asset Loss / Ikhlas).";
                 krisisAktif = null;
             }
-            return "IKHLAS TOTAL: Unit " + plat + " resmi dihapus dari pembukuan aset perusahaan sebagai kerugian penggelapan.";
+            return "SUKSES:IKHLAS TOTAL: Unit " + plat + " resmi dihapus dari pembukuan aset perusahaan sebagai kerugian penggelapan.";
         }
         return "Armada tidak ditemukan.";
     }

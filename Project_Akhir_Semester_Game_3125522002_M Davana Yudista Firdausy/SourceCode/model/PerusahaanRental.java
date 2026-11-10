@@ -287,6 +287,27 @@ public class PerusahaanRental implements Serializable {
         return manajerPesanan.cekJadwalBentrok(platNomor, hariMulai, jamMulai, durasiJam, isCarWashInhouse);
     }
 
+    // Resolusi Krisis Delegator
+    public String aksiTelepon(String plat) {
+        return manajerPesanan.aksiTeleponPenyewa(plat, this);
+    }
+
+    public String aksiMatikanMesin(String plat) throws SaldoKasTidakCukupException {
+        return manajerPesanan.aksiMatikanMesinRemote(plat, this);
+    }
+
+    public String aksiLaporPolisi(String plat) throws SaldoKasTidakCukupException {
+        return manajerPesanan.aksiLaporPolisi(plat, kas, this);
+    }
+
+    public String aksiByOneAkamsi(String plat) throws SaldoKasTidakCukupException {
+        return manajerPesanan.aksiByOneAkamsi(plat, kas, this);
+    }
+
+    public String aksiIkhlas(String plat) {
+        return manajerPesanan.aksiIkhlas(plat, this);
+    }
+
     // Step Simulator
     public synchronized void stepSimulation(int deltaMenit) {
         int hariSebelum = waktu.getHari();

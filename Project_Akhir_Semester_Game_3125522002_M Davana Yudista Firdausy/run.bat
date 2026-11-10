@@ -27,7 +27,7 @@ echo Kompilasi Berhasil (0 Error)!
 echo.
 echo Pilih Mode Eksekusi:
 echo   [1] Buka Antarmuka Game Tycoon (Desktop WebKit - Green White)
-echo   [2] Jalankan Test Regression Otomatis (14 Skenario P1-P15)
+echo   [2] Jalankan Test Regression Otomatis (16 Skenario P1-P15)
 echo.
 
 set "MODE=1"
@@ -44,7 +44,7 @@ goto end
 
 :run_test
 echo.
-echo Menjalankan Suite Uji Regresi Otomatis (14 Kasus Uji P1-P15)...
+echo Menjalankan Suite Uji Regresi Otomatis (16 Kasus Uji P1-P15)...
 java -cp "%BIN_DIR%;%MYSQL_JAR%;." SourceCode.TestGameSimulationRunner
 goto end
 

@@ -319,28 +319,50 @@ public class Main extends Application {
             });
         }
 
-        // Resolusi Krisis
+        // Resolusi Krisis & Branching Engine (Sub-Agent 1)
         public void aksiTelepon(String plat) {
             Platform.runLater(() -> {
-                String hasil = rental.getManajerPesanan().aksiTeleponPenyewa(plat);
-                showToast(hasil, false);
+                String raw = rental.getManajerPesanan().aksiTeleponPenyewa(plat, rental);
+                boolean isConnected = raw.startsWith("TERHUBUNG:");
+                String cleanMsg = raw.replace("TERHUBUNG:", "").replace("GAGAL:", "");
+                showToast(cleanMsg, isConnected);
+                try {
+                    String sanitized = cleanMsg.replace("'", "\\'").replace("\n", " ");
+                    webEngine.executeScript("if (typeof onTeleponResult === 'function') { onTeleponResult('" + sanitized + "', " + isConnected + "); }");
+                } catch (Exception ignored) {}
                 pushGameState();
             });
         }
 
         public void aksiMatikanMesin(String plat) {
             Platform.runLater(() -> {
-                String hasil = rental.getManajerPesanan().aksiMatikanMesinRemote(plat, rental);
-                showToast(hasil, hasil.contains("SUKSES"));
-                pushGameState();
+                try {
+                    String raw = rental.getManajerPesanan().aksiMatikanMesinRemote(plat, rental);
+                    boolean isSuccess = raw.startsWith("SUKSES:");
+                    String cleanMsg = raw.replace("SUKSES:", "").replace("GAGAL:", "");
+                    showToast(cleanMsg, isSuccess);
+                    try {
+                        String sanitized = cleanMsg.replace("'", "\\'").replace("\n", " ");
+                        webEngine.executeScript("if (typeof onEscalationResult === 'function') { onEscalationResult('" + sanitized + "', " + isSuccess + "); }");
+                    } catch (Exception ignored) {}
+                    pushGameState();
+                } catch (Exception e) {
+                    showToast("Gagal matikan mesin: " + e.getMessage(), false);
+                }
             });
         }
 
         public void aksiLaporPolisi(String plat) {
             Platform.runLater(() -> {
                 try {
-                    String hasil = rental.getManajerPesanan().aksiLaporPolisi(plat, rental.getKas(), rental);
-                    showToast(hasil, hasil.contains("ALHAMDULILLAH"));
+                    String raw = rental.getManajerPesanan().aksiLaporPolisi(plat, rental.getKas(), rental);
+                    boolean isSuccess = raw.startsWith("SUKSES:");
+                    String cleanMsg = raw.replace("SUKSES:", "").replace("GAGAL:", "");
+                    showToast(cleanMsg, isSuccess);
+                    try {
+                        String sanitized = cleanMsg.replace("'", "\\'").replace("\n", " ");
+                        webEngine.executeScript("if (typeof onEscalationResult === 'function') { onEscalationResult('" + sanitized + "', " + isSuccess + "); }");
+                    } catch (Exception ignored) {}
                     pushGameState();
                 } catch (Exception e) {
                     showToast("Laporan polisi gagal: " + e.getMessage(), false);
@@ -351,8 +373,14 @@ public class Main extends Application {
         public void aksiByOne(String plat) {
             Platform.runLater(() -> {
                 try {
-                    String hasil = rental.getManajerPesanan().aksiByOneAkamsi(plat, rental.getKas(), rental);
-                    showToast(hasil, hasil.contains("BERHASIL"));
+                    String raw = rental.getManajerPesanan().aksiByOneAkamsi(plat, rental.getKas(), rental);
+                    boolean isSuccess = raw.startsWith("SUKSES:");
+                    String cleanMsg = raw.replace("SUKSES:", "").replace("GAGAL:", "");
+                    showToast(cleanMsg, isSuccess);
+                    try {
+                        String sanitized = cleanMsg.replace("'", "\\'").replace("\n", " ");
+                        webEngine.executeScript("if (typeof onEscalationResult === 'function') { onEscalationResult('" + sanitized + "', " + isSuccess + "); }");
+                    } catch (Exception ignored) {}
                     pushGameState();
                 } catch (Exception e) {
                     showToast("Aksi akamsi gagal: " + e.getMessage(), false);
@@ -362,8 +390,13 @@ public class Main extends Application {
 
         public void aksiIkhlas(String plat) {
             Platform.runLater(() -> {
-                String hasil = rental.getManajerPesanan().aksiIkhlas(plat, rental);
-                showToast(hasil, true);
+                String raw = rental.getManajerPesanan().aksiIkhlas(plat, rental);
+                String cleanMsg = raw.replace("SUKSES:", "");
+                showToast(cleanMsg, true);
+                try {
+                    String sanitized = cleanMsg.replace("'", "\\'").replace("\n", " ");
+                    webEngine.executeScript("if (typeof onEscalationResult === 'function') { onEscalationResult('" + sanitized + "', true); }");
+                } catch (Exception ignored) {}
                 pushGameState();
             });
         }

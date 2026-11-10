@@ -655,17 +655,90 @@ function renderTransactions(transaksi) {
     });
 }
 
-// Emergency Crisis Management
+// Emergency Crisis Management & Branching Engine (Sub-Agent 1)
 function checkEmergencyCrisis(krisis) {
     const modal = document.getElementById('modal-krisis');
     if (krisis && krisis.butuhTindakan) {
         activeCrisisPlat = krisis.plat;
         document.getElementById('krisis-desc-text').textContent = krisis.pesan;
+
+        // Reset Crisis Modal to Initial State
+        const statusCard = document.getElementById('krisis-status-card');
+        const primaryAction = document.getElementById('krisis-primary-action');
+        const escalationList = document.getElementById('krisis-escalation-list');
+        const closeBtn = document.getElementById('krisis-close-btn-container');
+
+        if (statusCard) statusCard.style.display = 'none';
+        if (primaryAction) primaryAction.style.display = 'block';
+        if (escalationList) escalationList.style.display = 'none';
+        if (closeBtn) closeBtn.style.display = 'none';
+
         modal.style.display = 'flex';
     } else {
         modal.style.display = 'none';
         activeCrisisPlat = null;
     }
+}
+
+// Callback dari Java ketika tombol Telepon selesai dievaluasi
+function onTeleponResult(message, isSuccess) {
+    const statusCard = document.getElementById('krisis-status-card');
+    const primaryAction = document.getElementById('krisis-primary-action');
+    const escalationList = document.getElementById('krisis-escalation-list');
+    const closeBtn = document.getElementById('krisis-close-btn-container');
+
+    if (!statusCard) return;
+
+    statusCard.style.display = 'block';
+    statusCard.textContent = message;
+
+    if (isSuccess) {
+        // SCENARIO A: Terhubung & Kooperatif (Grace Period + Denda)
+        statusCard.style.background = '#d1fae5';
+        statusCard.style.color = '#065f46';
+        statusCard.style.border = '1.5px solid #34d399';
+        if (primaryAction) primaryAction.style.display = 'none';
+        if (escalationList) escalationList.style.display = 'none';
+        if (closeBtn) closeBtn.style.display = 'block';
+    } else {
+        // SCENARIO B: Nomor Mati / Tidak Aktif -> Buka Opsi Eskalasi Lanjutan
+        statusCard.style.background = '#fee2e2';
+        statusCard.style.color = '#991b1b';
+        statusCard.style.border = '1.5px solid #f87171';
+        if (primaryAction) primaryAction.style.display = 'none';
+        if (escalationList) escalationList.style.display = 'flex';
+        if (closeBtn) closeBtn.style.display = 'none';
+    }
+}
+
+// Callback dari Java ketika tindakan eskalasi selesai
+function onEscalationResult(message, isSuccess) {
+    const statusCard = document.getElementById('krisis-status-card');
+    const escalationList = document.getElementById('krisis-escalation-list');
+    const closeBtn = document.getElementById('krisis-close-btn-container');
+
+    if (!statusCard) return;
+
+    statusCard.style.display = 'block';
+    statusCard.textContent = message;
+
+    if (isSuccess) {
+        statusCard.style.background = '#d1fae5';
+        statusCard.style.color = '#065f46';
+        statusCard.style.border = '1.5px solid #34d399';
+        if (escalationList) escalationList.style.display = 'none';
+        if (closeBtn) closeBtn.style.display = 'block';
+    } else {
+        statusCard.style.background = '#fef3c7';
+        statusCard.style.color = '#92400e';
+        statusCard.style.border = '1.5px solid #f59e0b';
+    }
+}
+
+function closeCrisisModal() {
+    const modal = document.getElementById('modal-krisis');
+    if (modal) modal.style.display = 'none';
+    activeCrisisPlat = null;
 }
 
 function resolveCrisis(actionType) {
