@@ -46,3 +46,6 @@ replay_pid*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# MS Office lock files
+~$*
